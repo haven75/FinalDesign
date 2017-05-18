@@ -1,0 +1,1 @@
+"D:\毕业设计\Job_doing\CODE\BPCP\main.obj"  TO "D:\毕业设计\Job_doing\CODE\BPCP\main" RS(256) PL(68) PW(78) 
