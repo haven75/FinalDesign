@@ -143,7 +143,7 @@ void main (void)
    P2 |= 0xC0;
    while (1)
    {
-   	 smg_display(2,2,0,0);
+   	 smg_display(0xe,0xa,0xc,18);
 		 PressureCal();
    }
 }
@@ -168,12 +168,14 @@ void PORT_Init (void)
 {
    U8 SFRPAGE_save = SFRPAGE;
    SFRPAGE  = CONFIG_PAGE;             // Port SFR's on Configuration page
-
+	
+	 P0SKIP |= 0x01;                     // Skip P0.0 (VREF)
+	 P0MDIN &= ~0x01;                   // Set VREF to analog
    P0MDOUT  |= 0x40;                   // P0.6 (CAN0 TX) is push-pull
    P1MDOUT  |= 0x08;                   // P1.3 (LED) is push-pull
    P1MDOUT &= 0xbf;          					//P1^6 open drain for relay
-  // P2MDIN |= 0xf0;           					 //ADC
-  // P2SKIP |= 0x0f;           					 //ADC
+	 P2SKIP |= 0x0f;                     // Skip P2.0,P2.1,P2.2,P2.3(ADC input)
+	 P2MDIN &= ~0x0f;                   // Set P2.0,P2.1,P2.2,P2.3 as an analog input
    P2MDOUT |= 0xc0;                    //P2.6/7 for driving mosfet
    P3MDOUT |= 0xff;                            //P3 is push-pull to drive the LED.
    P4MDOUT |= 0x03;                            //P4   
@@ -187,34 +189,50 @@ void PORT_Init (void)
 //-----------------------------------------------------------------------------
 // ADC0_Init
 //-----------------------------------------------------------------------------
-void ADC0_Init(void)
+void ADC0_Init (void)
 {
-	U8 SFRPAGE_save = SFRPAGE;
-	SFRPAGE = ACTIVE_PAGE;
+   U8 SFRPAGE_save = SFRPAGE;
+   SFRPAGE = ACTIVE_PAGE;
 
-	ADC0CF |= 0x01;
-	ADC0H = 0x04;
-	ADC0L = 0x48;
-	ADC0H = 0x07;
-	ADC0L = 0xd0;
-	ADC0H = 0x08;
-	ADC0L = 0x01;
-	ADC0CF &= ~0x01;
+   // Initialize the Gain to account for a 5V input and 2.25 VREF
+   // Solve the equation provided in Section 9.3.1 of the Datasheet
 
-	ADC0CN = 0x10;           //0 start by writing 1 to AD0BUSY, 1 start by overflow of timer 1 , 3 by timer 2
+   // The 5V input is scaled by a factor of 0.44 so that the maximum input
+   // voltage seen by the pin is 2.2V
 
-	REF0CN = 0x03;
+   // 0.44 = (GAIN/4096) + GAINADD * (1/64)
 
-	ADC0MX = 0x10| PIN_TABLE[AMUX_INPUT];
+   // Set GAIN to 0x6CA and GAINADD to 1
+   // GAIN = is the 12-bit word formed by ADC0GNH[7:0] ADC0GNL[7:4]
+   // GAINADD is bit ADC0GNA.0
 
-	ADC0CF = ((SYSCLK /3000000) - 1) << 3;
+   ADC0CF |= 0x01;                     // Set GAINEN = 1
+   ADC0H   = 0x04;                     // Load the ADC0GNH address
+   ADC0L   = 0x6C;                     // Load the upper byte of 0x6CA to 
+                                       // ADC0GNH
+   ADC0H   = 0x07;                     // Load the ADC0GNL address
+   ADC0L   = 0xA0;                     // Load the lower nibble of 0x6CA to 
+                                       // ADC0GNL
+   ADC0H   = 0x08;                     // Load the ADC0GNA address
+   ADC0L   = 0x01;                     // Set the GAINADD bit
+   ADC0CF &= ~0x01;                    // Set GAINEN = 0
 
-	EIE1 |= 0x04;
+   ADC0CN = 0x03;                      // ADC0 disabled, normal tracking,
+                                       // conversion triggered on TMR2 overflow
+                                       // Output is right-justified
 
-	AD0EN = 1;
+   REF0CN = 0x33;                      // Enable on-chip VREF and buffer
+                                       // Set voltage reference to 2.25V
 
-	SFRPAGE = SFRPAGE_save;
+   ADC0MX = 0x0A;                      // Set ADC input to P1.2
 
+   ADC0CF = ((SYSCLK / 3000000) - 1) << 3;   // Set SAR clock to 3MHz
+
+   EIE1 |= 0x04;                       // Enable ADC0 conversion complete int.
+
+   AD0EN = 1;                          // Enable ADC0
+
+   SFRPAGE = SFRPAGE_save;
 }
 
 
@@ -246,12 +264,12 @@ void Timer_Init(void)
 
    PT2 = 1;
 
-	TMR3CN    = 0x00;			//t3 16bit reload timer,don't run,sys-clock/12
+		TMR3CN    = 0x00;			//t3 16bit reload timer,don't run,sys-clock/12
     TMR3RLL   = 0x30;
     TMR3RLH   = 0xF8;
     TMR3L     = 0x30;
     TMR3H     = 0xF8;			//    ¨®?¨®¨²S¡ê?ms?¡§¨º¡À */
-	TMR3CN |= 0x04;				//run timer3
+		TMR3CN |= 0x04;				//run timer3
 
    SFRPAGE = SFRPAGE_save;
 }
@@ -641,6 +659,7 @@ INTERRUPT (ADC0_ISR, INTERRUPT_ADC0_EOC)
    {
       AMUX_INPUT++;                    // Step to the next analog mux input
    }
+	 //smg_display(0xe,0xa,0xc,18);
 }
 
 
@@ -655,34 +674,33 @@ void Yunzhuanwei()
 }
 void Chuzhiwei()
 {
+	Target_ERT_Pressure = 50;
 	RelayON;
-	APP_OFF;
-	REL_ON;
 }
 
 void Quanzhidongwei()
 {
 	RelayON;
-	APP_OFF;
-	REL_ON;
+	Target_ERT_Pressure = 170;
 }
 
 void Yizhiwei()
 {
 	RelayON;
-	APP_OFF;
-	REL_ON;
+	Target_ERT_Pressure = 170;
 }
 
 void Chonglianwei()
 {
 	RelayON;
-	APP_OFF;
-	REL_ON;
+	Target_ERT_Pressure = 0;
 }
 
 void Jinjiwei()
-{}
+{
+	RelayON;
+	Target_ERT_Pressure = 0;
+}
 
 //-----------------------------------------------------------------------------
 // End Of File
