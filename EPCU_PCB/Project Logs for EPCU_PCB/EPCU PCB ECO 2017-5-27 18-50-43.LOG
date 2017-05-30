@@ -1,0 +1,8 @@
+Added Component: Designator=C5(0805)
+Added Component: Designator=C6(0805)
+Added Pin To Net: NetName=NetC5_1 Pin=C5-1
+Added Pin To Net: NetName=GND Pin=C5-2
+Added Pin To Net: NetName=MOS1 Pin=C6-1
+Added Pin To Net: NetName=GND Pin=C6-2
+Added Member To Class: ClassName=EPCU Member=Component C5 104
+Added Member To Class: ClassName=EPCU Member=Component C6 104/50V

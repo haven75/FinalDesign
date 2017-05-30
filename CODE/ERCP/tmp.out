@@ -1,14 +1,7 @@
 
-BL51 BANKED LINKER/LOCATER V6.22 - SN: Eval Version
+BL51 BANKED LINKER/LOCATER V6.22 - SN: K1DMC-YYYKUC
 COPYRIGHT KEIL ELEKTRONIK GmbH 1987 - 2009
-"D:\毕业设计\Job_doing\CODE\ERCP\main.obj"  TO "D:\毕业设计\Job_doing\CODE\ERCP\main" RS(256) PL(68) PW(78) 
+"D:\毕业设计\Job_doing\FinalDesign\CODE\ERCP\main.obj"  TO "D:\毕业设计\Job_doing\FinalDesign\CODE\ERCP\main" RS(256) PL(68) PW(78) 
 
-******************************************************************************
-* RESTRICTED VERSION WITH 0800H BYTE CODE SIZE LIMIT; USED: 03C1H BYTE (46%) *
-******************************************************************************
-
->> 
->> 
->> 
 Program Size: data=49.1 xdata=0 code=1209
 LINK/LOCATE RUN COMPLETE.  0 WARNING(S),  0 ERROR(S)

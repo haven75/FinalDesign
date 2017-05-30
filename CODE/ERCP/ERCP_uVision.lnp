@@ -1,0 +1,5 @@
+"STARTUP.obj",
+"main.obj" 
+TO "ERCP_uVision" 
+RAMSIZE(256) 
+XDATA( 0X0000-0X0FFF )

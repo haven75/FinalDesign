@@ -1,0 +1,73 @@
+Added Component: Designator=C3(0805)
+Added Component: Designator=C15(0805)
+Added Component: Designator=C21(0805)
+Added Component: Designator=C22(0805)
+Added Component: Designator=C26(0805)
+Added Component: Designator=C31(0805)
+Added Component: Designator=C32(0805)
+Added Component: Designator=JB1(SIP4)
+Added Component: Designator=JB2(SIP9)
+Added Component: Designator=JB3(SIP4)
+Added Component: Designator=JB4(POWER2)
+Added Component: Designator=JDQ1(jidianqi_12VDC)
+Added Component: Designator=K1(KEY6)
+Added Component: Designator=K2(KEY6)
+Added Pin To Net: NetName=+24V Pin=C3-1
+Added Pin To Net: NetName=NetC3_2 Pin=C3-2
+Added Pin To Net: NetName=NetC15_1 Pin=C15-1
+Added Pin To Net: NetName=GND Pin=C15-2
+Added Pin To Net: NetName=+24V Pin=C21-1
+Added Pin To Net: NetName=NetC21_2 Pin=C21-2
+Added Pin To Net: NetName=MOS2 Pin=C22-1
+Added Pin To Net: NetName=GND Pin=C22-2
+Added Pin To Net: NetName=NetC26_1 Pin=C26-1
+Added Pin To Net: NetName=GND Pin=C26-2
+Added Pin To Net: NetName=NetC31_1 Pin=C31-1
+Added Pin To Net: NetName=74VGND Pin=C31-2
+Added Pin To Net: NetName=NetC32_1 Pin=C32-1
+Added Pin To Net: NetName=GND Pin=C32-2
+Added Pin To Net: NetName=+24V Pin=JB1-1
+Added Pin To Net: NetName=NetD1_1 Pin=JB1-2
+Added Pin To Net: NetName=+24V Pin=JB1-3
+Added Pin To Net: NetName=NetD3_1 Pin=JB1-4
+Added Pin To Net: NetName=+24V Pin=JB2-1
+Added Pin To Net: NetName=NetC5_1 Pin=JB2-2
+Added Pin To Net: NetName=+24V Pin=JB2-3
+Added Pin To Net: NetName=NetC15_1 Pin=JB2-4
+Added Pin To Net: NetName=+24V Pin=JB2-5
+Added Pin To Net: NetName=NetC26_1 Pin=JB2-6
+Added Pin To Net: NetName=+24V Pin=JB2-7
+Added Pin To Net: NetName=NetC32_1 Pin=JB2-8
+Added Pin To Net: NetName=GND Pin=JB2-9
+Added Pin To Net: NetName=NetJB3_1 Pin=JB3-1
+Added Pin To Net: NetName=NetJB3_2 Pin=JB3-2
+Added Pin To Net: NetName=NetJB3_3 Pin=JB3-3
+Added Pin To Net: NetName=74VGND Pin=JB3-4
+Added Pin To Net: NetName=GND Pin=JB4-1
+Added Pin To Net: NetName=+24V Pin=JB4-2
+Added Pin To Net: NetName=NetJB3_1 Pin=JDQ1-1
+Added Pin To Net: NetName=GND Pin=JDQ1-2
+Added Pin To Net: NetName=NetJB3_2 Pin=JDQ1-3
+Added Pin To Net: NetName=NetD5_2 Pin=JDQ1-5
+Added Pin To Net: NetName=KEY1 Pin=K1-1
+Added Pin To Net: NetName=KEY1 Pin=K1-1
+Added Pin To Net: NetName=GND Pin=K1-2
+Added Pin To Net: NetName=GND Pin=K1-2
+Added Pin To Net: NetName=KEY2 Pin=K2-1
+Added Pin To Net: NetName=KEY2 Pin=K2-1
+Added Pin To Net: NetName=GND Pin=K2-2
+Added Pin To Net: NetName=GND Pin=K2-2
+Added Member To Class: ClassName=EPCU Member=Component C3 104/50V
+Added Member To Class: ClassName=EPCU Member=Component C15 104
+Added Member To Class: ClassName=EPCU Member=Component C21 104/50V
+Added Member To Class: ClassName=EPCU Member=Component C22 104/50V
+Added Member To Class: ClassName=EPCU Member=Component C26 104
+Added Member To Class: ClassName=EPCU Member=Component C31 104/50V
+Added Member To Class: ClassName=EPCU Member=Component C32 104
+Added Member To Class: ClassName=EPCU Member=Component JB1 CON4
+Added Member To Class: ClassName=EPCU Member=Component JB2 CON9
+Added Member To Class: ClassName=EPCU Member=Component JB3 CON4
+Added Member To Class: ClassName=EPCU Member=Component JB4 CON2
+Added Member To Class: ClassName=EPCU Member=Component JDQ1 RELAY
+Added Member To Class: ClassName=EPCU Member=Component K1 KEY6
+Added Member To Class: ClassName=EPCU Member=Component K2 KEY6

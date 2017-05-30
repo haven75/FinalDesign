@@ -1,0 +1,80 @@
+Added Component: Designator=R2(0805)
+Added Component: Designator=R3(AXIAL0.4)
+Added Component: Designator=R4(0805)
+Added Component: Designator=R6(0805)
+Added Component: Designator=R8(0805)
+Added Component: Designator=R9(0805)
+Added Component: Designator=R11(AXIAL0.4)
+Added Component: Designator=R13(0805)
+Added Component: Designator=R15(0805)
+Added Component: Designator=R16(0805)
+Added Component: Designator=R17(0805)
+Added Component: Designator=R18(0805)
+Added Component: Designator=R19(AXIAL0.4)
+Added Component: Designator=R20(AXIAL0.4)
+Added Component: Designator=R22(0805)
+Added Component: Designator=R25(AXIAL0.4)
+Added Component: Designator=R27(0805)
+Added Component: Designator=R28(0805)
+Added Component: Designator=R29(1206DIODE)
+Added Component: Designator=R31(AXIAL0.4)
+Added Pin To Net: NetName=NetC3_2 Pin=R2-1
+Added Pin To Net: NetName=+24V Pin=R2-2
+Added Pin To Net: NetName=NetC5_1 Pin=R3-1
+Added Pin To Net: NetName=GND Pin=R3-2
+Added Pin To Net: NetName=NetD2_2 Pin=R4-1
+Added Pin To Net: NetName=NetC3_2 Pin=R4-2
+Added Pin To Net: NetName=MOS1 Pin=R6-1
+Added Pin To Net: NetName=NetQ1_2 Pin=R6-2
+Added Pin To Net: NetName=GND Pin=R8-1
+Added Pin To Net: NetName=NetC3_2 Pin=R8-2
+Added Pin To Net: NetName=GND Pin=R9-1
+Added Pin To Net: NetName=MOS1 Pin=R9-2
+Added Pin To Net: NetName=NetC15_1 Pin=R11-1
+Added Pin To Net: NetName=GND Pin=R11-2
+Added Pin To Net: NetName=NetC21_2 Pin=R13-1
+Added Pin To Net: NetName=+24V Pin=R13-2
+Added Pin To Net: NetName=NetD4_2 Pin=R15-1
+Added Pin To Net: NetName=NetC21_2 Pin=R15-2
+Added Pin To Net: NetName=MOS2 Pin=R16-1
+Added Pin To Net: NetName=NetQ2_2 Pin=R16-2
+Added Pin To Net: NetName=GND Pin=R17-1
+Added Pin To Net: NetName=NetC21_2 Pin=R17-2
+Added Pin To Net: NetName=GND Pin=R18-1
+Added Pin To Net: NetName=MOS2 Pin=R18-2
+Added Pin To Net: NetName=NetC26_1 Pin=R19-1
+Added Pin To Net: NetName=GND Pin=R19-2
+Added Pin To Net: NetName=NetC31_1 Pin=R20-1
+Added Pin To Net: NetName=NetJB3_3 Pin=R20-2
+Added Pin To Net: NetName=NetR22_1 Pin=R22-1
+Added Pin To Net: NetName=+5V Pin=R22-2
+Added Pin To Net: NetName=74VGND Pin=R25-1
+Added Pin To Net: NetName=NetC31_1 Pin=R25-2
+Added Pin To Net: NetName=NetDS4_1 Pin=R27-1
+Added Pin To Net: NetName=NetD5_2 Pin=R27-2
+Added Pin To Net: NetName=NetR28_1 Pin=R28-1
+Added Pin To Net: NetName=74VGND Pin=R28-2
+Added Pin To Net: NetName=NetDS5_1 Pin=R29-1
+Added Pin To Net: NetName=74V_SIGNAL Pin=R29-2
+Added Pin To Net: NetName=NetC32_1 Pin=R31-1
+Added Pin To Net: NetName=GND Pin=R31-2
+Added Member To Class: ClassName=EPCU Member=Component R2 10K
+Added Member To Class: ClassName=EPCU Member=Component R3 250ŷ
+Added Member To Class: ClassName=EPCU Member=Component R4 10K
+Added Member To Class: ClassName=EPCU Member=Component R6 1K
+Added Member To Class: ClassName=EPCU Member=Component R8 10K
+Added Member To Class: ClassName=EPCU Member=Component R9 10K
+Added Member To Class: ClassName=EPCU Member=Component R11 250ŷ
+Added Member To Class: ClassName=EPCU Member=Component R13 10K
+Added Member To Class: ClassName=EPCU Member=Component R15 10K
+Added Member To Class: ClassName=EPCU Member=Component R16 1K
+Added Member To Class: ClassName=EPCU Member=Component R17 10K
+Added Member To Class: ClassName=EPCU Member=Component R18 10K
+Added Member To Class: ClassName=EPCU Member=Component R19 250ŷ
+Added Member To Class: ClassName=EPCU Member=Component R20 100Kŷ
+Added Member To Class: ClassName=EPCU Member=Component R22 511
+Added Member To Class: ClassName=EPCU Member=Component R25 8.87K
+Added Member To Class: ClassName=EPCU Member=Component R27 5.1K
+Added Member To Class: ClassName=EPCU Member=Component R28 511
+Added Member To Class: ClassName=EPCU Member=Component R29 511
+Added Member To Class: ClassName=EPCU Member=Component R31 250ŷ

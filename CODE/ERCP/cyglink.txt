@@ -1,1 +1,1 @@
-"D:\毕业设计\Job_doing\CODE\ERCP\main.obj"  TO "D:\毕业设计\Job_doing\CODE\ERCP\main" RS(256) PL(68) PW(78) 
+"D:\毕业设计\Job_doing\FinalDesign\CODE\ERCP\main.obj"  TO "D:\毕业设计\Job_doing\FinalDesign\CODE\ERCP\main" RS(256) PL(68) PW(78) 

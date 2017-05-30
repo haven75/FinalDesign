@@ -1,0 +1,61 @@
+Added Component: Designator=R26(0805)
+Added Component: Designator=R30(0805)
+Added Component: Designator=R32(0805)
+Added Component: Designator=S1(HDW24S5)
+Added Component: Designator=S2(LEDS4-14)
+Added Component: Designator=U1(CYM1050T)
+Added Component: Designator=U3(SOP-8)
+Added Component: Designator=U4(SO-8)
+Added Pin To Net: NetName=NetJ4_1 Pin=R26-1
+Added Pin To Net: NetName=NetR21_1 Pin=R26-2
+Added Pin To Net: NetName=NetJ4_3 Pin=R30-1
+Added Pin To Net: NetName=NetR23_2 Pin=R30-2
+Added Pin To Net: NetName=NetJ4_5 Pin=R32-1
+Added Pin To Net: NetName=NetR24_2 Pin=R32-2
+Added Pin To Net: NetName=GND Pin=S1-1
+Added Pin To Net: NetName=+24V Pin=S1-2
+Added Pin To Net: NetName=+5V Pin=S1-3
+Added Pin To Net: NetName=GND Pin=S1-5
+Added Pin To Net: NetName=NetS2_1 Pin=S2-1
+Added Pin To Net: NetName=NetS2_2 Pin=S2-2
+Added Pin To Net: NetName=NetS2_3 Pin=S2-3
+Added Pin To Net: NetName=NetS2_4 Pin=S2-4
+Added Pin To Net: NetName=NetS2_5 Pin=S2-5
+Added Pin To Net: NetName=NetS2_6 Pin=S2-6
+Added Pin To Net: NetName=NetS2_7 Pin=S2-7
+Added Pin To Net: NetName=NetS2_8 Pin=S2-8
+Added Pin To Net: NetName=DIG1 Pin=S2-9
+Added Pin To Net: NetName=DIG2 Pin=S2-10
+Added Pin To Net: NetName=DIG3 Pin=S2-11
+Added Pin To Net: NetName=DIG4 Pin=S2-12
+Added Pin To Net: NetName=+5V Pin=U1-1
+Added Pin To Net: NetName=GND Pin=U1-2
+Added Pin To Net: NetName=CAN_TX Pin=U1-3
+Added Pin To Net: NetName=CAN_RX Pin=U1-4
+Added Pin To Net: NetName=NetJ1_3 Pin=U1-6
+Added Pin To Net: NetName=NetJ1_2 Pin=U1-7
+Added Pin To Net: NetName=NetJ1_1 Pin=U1-8
+Added Pin To Net: NetName=GND Pin=U3-1
+Added Pin To Net: NetName=GND Pin=U3-2
+Added Pin To Net: NetName=GND Pin=U3-3
+Added Pin To Net: NetName=NetD2_2 Pin=U3-4
+Added Pin To Net: NetName=NetD1_1 Pin=U3-5
+Added Pin To Net: NetName=NetD1_1 Pin=U3-6
+Added Pin To Net: NetName=NetD1_1 Pin=U3-7
+Added Pin To Net: NetName=NetD1_1 Pin=U3-8
+Added Pin To Net: NetName=GND Pin=U4-1
+Added Pin To Net: NetName=GND Pin=U4-2
+Added Pin To Net: NetName=GND Pin=U4-3
+Added Pin To Net: NetName=NetD4_2 Pin=U4-4
+Added Pin To Net: NetName=NetD3_1 Pin=U4-5
+Added Pin To Net: NetName=NetD3_1 Pin=U4-6
+Added Pin To Net: NetName=NetD3_1 Pin=U4-7
+Added Pin To Net: NetName=NetD3_1 Pin=U4-8
+Added Member To Class: ClassName=EPCU Member=Component R26 511
+Added Member To Class: ClassName=EPCU Member=Component R30 511
+Added Member To Class: ClassName=EPCU Member=Component R32 511
+Added Member To Class: ClassName=EPCU Member=Component S1 HDW24S5
+Added Member To Class: ClassName=EPCU Member=Component S2 LEDS4-14
+Added Member To Class: ClassName=EPCU Member=Component U1 
+Added Member To Class: ClassName=EPCU Member=Component U3 IRF7853PBF
+Added Member To Class: ClassName=EPCU Member=Component U4 IRF7853PBF
