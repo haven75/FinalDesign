@@ -83,6 +83,7 @@ INTERRUPT_PROTO (ADC0_ISR, INTERRUPT_ADC0_EOC);
 #define ERCP_ID 0x010
 #define BPCP_ID 0x011
 #define CP16_ID 0x012
+#define Respond_ID 0x30
 #define ANALOG_INPUTS    2
 #define INT_DEC             256        // Integrate and decimate ratio
 
@@ -265,10 +266,12 @@ void Timer_Init(void)
    PT2 = 1;
 
 		TMR3CN    = 0x00;			//t3 16bit reload timer,don't run,sys-clock/12
-    TMR3RLL   = 0x30;
-    TMR3RLH   = 0xF8;
-    TMR3L     = 0x30;
-    TMR3H     = 0xF8;			//    車?車迆S㏒?ms?“那㊣ */
+    TMR3RL = 200;
+	  TMR3 = 0xffff;
+	 //TMR3RLL   = 0xb0;
+   // TMR3RLH   = 0x3c;
+   // TMR3L     = 0xb0;
+   // TMR3H     = 0x3c;			//    車?車迆S㏒?ms?“那㊣ */
 		TMR3CN |= 0x04;				//run timer3
 
    SFRPAGE = SFRPAGE_save;
@@ -354,18 +357,18 @@ void CAN0_Init (void)
 
    while (CAN0IF1CRH & 0x80) {}       // Poll on Busy bit
 
-   CAN0IF1A2 = 0xA000 | (IPM_ID << 2);  // Set MsgVal to valid
+   CAN0IF1A2 = 0xA000 | (Respond_ID << 2);  // Set MsgVal to valid
                                          // Set Direction to write
                                          // Set 11-bit Identifier to iter
 
-   CAN0IF1CR = IPM_ID;                // Start command request
+   CAN0IF1CR = Respond_ID;                // Start command request
 
    while (CAN0IF1CRH & 0x80) {}       // Poll on Busy bit
    //---------Initialize settings for unused message objects
 
    for (iter = 0; iter < MESSAGE_OBJECTS; iter++)
    {
-   	if(iter != ERCP_ID && iter != BPCP_ID && iter != Broadcast_ID && iter != IPM_ID)
+   	if(iter != ERCP_ID && iter != BPCP_ID && iter != Broadcast_ID && iter != Respond_ID)
 	 {
       // Set remaining message objects to be Ignored
       CAN0IF1A2 = 0x0000;              // Set MsgVal to 0 to Ignore
@@ -514,7 +517,7 @@ INTERRUPT (CAN0_ISR, INTERRUPT_CAN0)
       CAN_Rx_Buf[7] = CAN0IF1DB2H;
       CAN_RX_COMPLETE = 1;
 	
-	if(Interrupt_ID == Broadcast_ID  && CAN_Rx_Buf[3] == IPM_ID)
+	if(Interrupt_ID == Broadcast_ID  && CAN_Rx_Buf[2] == IPM_ID)
 	{
 		if( CAN_Rx_Buf[1] == 0x01)
 		{
@@ -531,9 +534,13 @@ INTERRUPT (CAN0_ISR, INTERRUPT_CAN0)
 	
 			CAN_Tx_Buf[0] = CAN_Rx_Buf[0];
 			CAN_Tx_Buf[1] = CAN_Rx_Buf[1];
-			CAN_Tx_Buf[3] = ERCP_ID;
-			CAN_Tx_Buf[4] = FaultCode;
-			CAN0_TransferMO(IPM_ID);
+			CAN_Tx_Buf[2] = ERCP_ID;
+			CAN_Tx_Buf[3] = FaultCode;
+			CAN_Tx_Buf[4] = pressureERT_H;
+			CAN_Tx_Buf[5] = pressureERT_L;
+			CAN_Tx_Buf[6] = pressureMRT_H;
+			CAN_Tx_Buf[7] = pressureMRT_L;
+			CAN0_TransferMO(Respond_ID);
 			CAN0_TransferMO(BPCP_ID);
 		}
 	}
