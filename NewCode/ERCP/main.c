@@ -83,7 +83,6 @@ INTERRUPT_PROTO (ADC0_ISR, INTERRUPT_ADC0_EOC);
 #define ERCP_ID 0x010
 #define BPCP_ID 0x011
 #define CP16_ID 0x012
-#define Respond_ID 0x30
 #define ANALOG_INPUTS    2
 #define INT_DEC             256        // Integrate and decimate ratio
 
@@ -125,7 +124,6 @@ float error, sumerror, lasterror, kp, ki, kd;
 
 void main (void)
 {
-
    SFRPAGE = ACTIVE_PAGE;              // Set for PCA0MD
 
    PCA0MD &= ~0x40;                    // Disable Watchdog Timer
@@ -266,13 +264,13 @@ void Timer_Init(void)
    PT2 = 1;
 
 		TMR3CN    = 0x00;			//t3 16bit reload timer,don't run,sys-clock/12
-    TMR3RL = 200;
-	  TMR3 = 0xffff;
-	 //TMR3RLL   = 0xb0;
-   // TMR3RLH   = 0x3c;
-   // TMR3L     = 0xb0;
-   // TMR3H     = 0x3c;			//    車?車迆S㏒?ms?“那㊣ */
-		TMR3CN |= 0x04;				//run timer3
+    //TMR3RL = 20000;
+///TMR3 = 0xffff;
+	  TMR3RLL   = 0x30;
+    TMR3RLH   = 0xf8;
+    TMR3L     = 0x30;
+    TMR3H     = 0xf8;			//    車?車迆S㏒?ms?“那㊣ */
+	TMR3CN |= 0x04;				//run timer3
 
    SFRPAGE = SFRPAGE_save;
 }
@@ -357,18 +355,18 @@ void CAN0_Init (void)
 
    while (CAN0IF1CRH & 0x80) {}       // Poll on Busy bit
 
-   CAN0IF1A2 = 0xA000 | (Respond_ID << 2);  // Set MsgVal to valid
+   CAN0IF1A2 = 0xA000 | (IPM_ID << 2);  // Set MsgVal to valid
                                          // Set Direction to write
                                          // Set 11-bit Identifier to iter
 
-   CAN0IF1CR = Respond_ID;                // Start command request
+   CAN0IF1CR = IPM_ID;                // Start command request
 
    while (CAN0IF1CRH & 0x80) {}       // Poll on Busy bit
    //---------Initialize settings for unused message objects
 
    for (iter = 0; iter < MESSAGE_OBJECTS; iter++)
    {
-   	if(iter != ERCP_ID && iter != BPCP_ID && iter != Broadcast_ID && iter != Respond_ID)
+   	if(iter != ERCP_ID && iter != BPCP_ID && iter != Broadcast_ID && iter != IPM_ID)
 	 {
       // Set remaining message objects to be Ignored
       CAN0IF1A2 = 0x0000;              // Set MsgVal to 0 to Ignore
@@ -458,9 +456,6 @@ void PIDControl()
 		PWM_APP = 0;
 		PWM_REL = 0.23;
 	}
-
-
-
 }
 //-----------------------------------------------------------------------------
 // Interrupt Service Routines
@@ -540,7 +535,7 @@ INTERRUPT (CAN0_ISR, INTERRUPT_CAN0)
 			CAN_Tx_Buf[5] = pressureERT_L;
 			CAN_Tx_Buf[6] = pressureMRT_H;
 			CAN_Tx_Buf[7] = pressureMRT_L;
-			CAN0_TransferMO(Respond_ID);
+			CAN0_TransferMO(IPM_ID);
 			CAN0_TransferMO(BPCP_ID);
 		}
 	}

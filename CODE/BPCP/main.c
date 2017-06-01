@@ -305,7 +305,7 @@ void CAN0_Init (void)
 
    while (CAN0IF1CRH & 0x80) {}       // Poll on Busy bit
 
-   CAN0IF1A2 = 0xA000 | (IPM_ID << 2);  // Set MsgVal to valid
+   CAN0IF1A2 = 0xA000 | (IPM_ID<< 2);  // Set MsgVal to valid
                                          // Set Direction to write
                                          // Set 11-bit Identifier to iter
 
@@ -423,7 +423,7 @@ INTERRUPT (CAN0_ISR, INTERRUPT_CAN0)
 		Rx_ERCP_OK = 1;
 	}
 	else if(Interrupt_ID == Broadcast_ID  && CAN_Rx_Buf[3] == IPM_ID)
-	{
+	{Rx_ERCP_OK = 1;
 		if( CAN_Rx_Buf[1] == 0x01)
 		{
 			switch(CAN_Rx_Buf[0])

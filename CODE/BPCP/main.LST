@@ -1,4 +1,4 @@
-C51 COMPILER V9.53.0.0   MAIN                                                              05/15/2017 16:37:37 PAGE 1   
+C51 COMPILER V9.53.0.0   MAIN                                                              05/31/2017 16:10:44 PAGE 1   
 
 
 C51 COMPILER V9.53.0.0, COMPILATION OF MODULE MAIN
@@ -62,7 +62,7 @@ line level    source
   53          //-----------------------------------------------------------------------------
   54          // Bit Definition Masks
   55          //-----------------------------------------------------------------------------
-C51 COMPILER V9.53.0.0   MAIN                                                              05/15/2017 16:37:37 PAGE 2   
+C51 COMPILER V9.53.0.0   MAIN                                                              05/31/2017 16:10:44 PAGE 2   
 
   56          
   57          // CAN0STAT
@@ -126,7 +126,7 @@ line level    source
  115   1         PORT_Init ();                       // Initialize crossbar and GPIO
  116   1         CAN0_Init ();                       // Start CAN peripheral
  117   1         ADC0_Init ();
-C51 COMPILER V9.53.0.0   MAIN                                                              05/15/2017 16:37:37 PAGE 3   
+C51 COMPILER V9.53.0.0   MAIN                                                              05/31/2017 16:10:44 PAGE 3   
 
  118   1         Timer2_Init ();
  119   1      
@@ -190,7 +190,7 @@ line level    source
  177          void ADC0_Init(void)
  178          {
  179   1              U8 SFRPAGE_save = SFRPAGE;
-C51 COMPILER V9.53.0.0   MAIN                                                              05/15/2017 16:37:37 PAGE 4   
+C51 COMPILER V9.53.0.0   MAIN                                                              05/31/2017 16:10:44 PAGE 4   
 
  180   1              SFRPAGE = ACTIVE_PAGE;
  181   1      
@@ -254,7 +254,7 @@ line level    source
  239   1         //---------Initialize general CAN peripheral settings
  240   1      
  241   1         CAN0CN |= 0x4E;                     // Enable Status, Error,
-C51 COMPILER V9.53.0.0   MAIN                                                              05/15/2017 16:37:37 PAGE 5   
+C51 COMPILER V9.53.0.0   MAIN                                                              05/31/2017 16:10:44 PAGE 5   
 
  242   1                                             // Module Interrupts
  243   1                                             // Enable access to bit timing register
@@ -318,13 +318,13 @@ line level    source
  301   1                                               // Set Direction to write
  302   1                                               // Set 11-bit Identifier to iter
  303   1      
-C51 COMPILER V9.53.0.0   MAIN                                                              05/15/2017 16:37:37 PAGE 6   
+C51 COMPILER V9.53.0.0   MAIN                                                              05/31/2017 16:10:44 PAGE 6   
 
  304   1         CAN0IF1CR = CP16_ID;                // Start command request
  305   1      
  306   1         while (CAN0IF1CRH & 0x80) {}       // Poll on Busy bit
  307   1      
- 308   1         CAN0IF1A2 = 0xA000 | (IPM_ID << 2);  // Set MsgVal to valid
+ 308   1         CAN0IF1A2 = 0xA000 | (IPM_ID<< 2);  // Set MsgVal to valid
  309   1                                               // Set Direction to write
  310   1                                               // Set 11-bit Identifier to iter
  311   1      
@@ -382,7 +382,7 @@ line level    source
  363   1      
  364   1         SFRPAGE = SFRPAGE_save;
  365   1      }
-C51 COMPILER V9.53.0.0   MAIN                                                              05/15/2017 16:37:37 PAGE 7   
+C51 COMPILER V9.53.0.0   MAIN                                                              05/31/2017 16:10:44 PAGE 7   
 
  366          //-----------------------------------------------------------------------------
  367          // Interrupt Service Routines
@@ -444,9 +444,9 @@ line level    source
  423   3                      Rx_ERCP_OK = 1;
  424   3              }
  425   2              else if(Interrupt_ID == Broadcast_ID  && CAN_Rx_Buf[3] == IPM_ID)
- 426   2              {
+ 426   2              {Rx_ERCP_OK = 1;
  427   3                      if( CAN_Rx_Buf[1] == 0x01)
-C51 COMPILER V9.53.0.0   MAIN                                                              05/15/2017 16:37:37 PAGE 8   
+C51 COMPILER V9.53.0.0   MAIN                                                              05/31/2017 16:10:44 PAGE 8   
 
  428   3                      {
  429   4                              switch(CAN_Rx_Buf[0])
@@ -510,7 +510,7 @@ line level    source
  487   1        U16  i,j;             //定义变量i,j,用于循环语句 
  488   1        for(i=0;i<time;i++)    //for循环,循环50*time次
  489   1           for(j=0;j<100;j++); //for循环,循环50次
-C51 COMPILER V9.53.0.0   MAIN                                                              05/15/2017 16:37:37 PAGE 9   
+C51 COMPILER V9.53.0.0   MAIN                                                              05/31/2017 16:10:44 PAGE 9   
 
  490   1       }
  491          
@@ -574,7 +574,7 @@ line level    source
  549   1              MV53_OFF;
  550   1              MVEM_OFF;
  551   1      }
-C51 COMPILER V9.53.0.0   MAIN                                                              05/15/2017 16:37:37 PAGE 10  
+C51 COMPILER V9.53.0.0   MAIN                                                              05/31/2017 16:10:44 PAGE 10  
 
  552          
  553          void Quanzhidongwei()
@@ -608,7 +608,7 @@ line level    source
 
 
 MODULE INFORMATION:   STATIC OVERLAYABLE
-   CODE SIZE        =    928    ----
+   CODE SIZE        =    931    ----
    CONSTANT SIZE    =   ----    ----
    XDATA SIZE       =   ----    ----
    PDATA SIZE       =   ----    ----
