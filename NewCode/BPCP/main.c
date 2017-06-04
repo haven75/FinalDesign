@@ -529,7 +529,7 @@ INTERRUPT (CAN0_ISR, INTERRUPT_CAN0)
 			Rx_ERCP_OK = 1;
 		}
 		if(Interrupt_ID == Broadcast_ID  && CAN_Rx_Buf[2] == IPM_ID)
-		{Rx_ERCP_OK = 1;
+		{
 			if( CAN_Rx_Buf[1] == 0x01)
 			{
 				switch(CAN_Rx_Buf[0])
@@ -545,13 +545,38 @@ INTERRUPT (CAN0_ISR, INTERRUPT_CAN0)
 		
 				CAN_Tx_Buf[0] = CAN_Rx_Buf[0];
 				CAN_Tx_Buf[1] = CAN_Rx_Buf[1];
-				CAN_Tx_Buf[2] = ERCP_ID;
+				CAN_Tx_Buf[2] = BPCP_ID;
 				CAN_Tx_Buf[3] = FaultCode;
 				CAN_Tx_Buf[4] = pressureERT_H;
 				CAN_Tx_Buf[5] = pressureERT_L;
 				CAN_Tx_Buf[6] = pressureMRT_H;
 				CAN_Tx_Buf[7] = pressureMRT_L;
-				CAN0_TransferMO(Respond_ID);
+				//CAN0_TransferMO(Respond_ID);
+			}
+			else if (CAN_Rx_Buf[1] == 0x11)
+			{
+				switch(CAN_Rx_Buf[0])
+				{
+					case 0x01: Yunzhuanwei(); break;
+					case 0x02: Chuzhiwei(); break;
+					case 0x04: Quanzhidongwei(); break;
+					case 0x08: Yizhiwei(); break;
+					case 0x10: Chonglianwei(); break;
+					case 0x20: Jinjiwei(); break;
+					default:break;
+				}
+		
+				CAN_Tx_Buf[0] = CAN_Rx_Buf[0];
+				CAN_Tx_Buf[1] = CAN_Rx_Buf[1];
+				CAN_Tx_Buf[2] = BPCP_ID;
+				CAN_Tx_Buf[3] = FaultCode;
+				CAN_Tx_Buf[4] = pressureERT_H;
+				CAN_Tx_Buf[5] = pressureERT_L;
+				CAN_Tx_Buf[6] = pressureMRT_H;
+				CAN_Tx_Buf[7] = pressureMRT_L;
+				//CAN0_TransferMO(Respond_ID);
+				CAN0_TransferMO(IPM_ID);
+				//CAN0_TransferMO (CP16_ID);
 			}
 		}
    }

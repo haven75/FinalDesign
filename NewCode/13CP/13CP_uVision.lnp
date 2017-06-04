@@ -1,0 +1,6 @@
+"STARTUP.obj",
+"Display.obj",
+"main.obj" 
+TO "13CP_uVision" 
+RAMSIZE(256) 
+XDATA( 0X0000-0X0FFF )

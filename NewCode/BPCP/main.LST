@@ -1,4 +1,4 @@
-C51 COMPILER V9.53.0.0   MAIN                                                              05/31/2017 16:18:55 PAGE 1   
+C51 COMPILER V9.53.0.0   MAIN                                                              06/03/2017 16:28:17 PAGE 1   
 
 
 C51 COMPILER V9.53.0.0, COMPILATION OF MODULE MAIN
@@ -62,7 +62,7 @@ line level    source
   53                                                 // Range is 1-32
   54          #define MESSAGE_SIZE        8          // Size in bytes of each CAN message
   55                                                 // Range is 1-8
-C51 COMPILER V9.53.0.0   MAIN                                                              05/31/2017 16:18:55 PAGE 2   
+C51 COMPILER V9.53.0.0   MAIN                                                              06/03/2017 16:28:17 PAGE 2   
 
   56          
   57          //-----------------------------------------------------------------------------
@@ -126,7 +126,7 @@ line level    source
  115          
  116          
  117          U32 pressure_current_MRT;
-C51 COMPILER V9.53.0.0   MAIN                                                              05/31/2017 16:18:55 PAGE 3   
+C51 COMPILER V9.53.0.0   MAIN                                                              06/03/2017 16:28:17 PAGE 3   
 
  118          U16 pressureMRT_H;
  119          U16 pressureMRT_L;
@@ -190,7 +190,7 @@ line level    source
  177   1         U8 SFRPAGE_save = SFRPAGE;
  178   1         SFRPAGE  = CONFIG_PAGE;             // Port SFR's on Configuration page
  179   1        
-C51 COMPILER V9.53.0.0   MAIN                                                              05/31/2017 16:18:55 PAGE 4   
+C51 COMPILER V9.53.0.0   MAIN                                                              06/03/2017 16:28:17 PAGE 4   
 
  180   1         P0SKIP |= 0x01;                     // Skip P0.0 (VREF)
  181   1         P0MDIN &= ~0x01;                   // Set VREF to analog
@@ -254,7 +254,7 @@ line level    source
  239   1         EIE1 |= 0x04;                       // Enable ADC0 conversion complete int.
  240   1      
  241   1         AD0EN = 1;                          // Enable ADC0
-C51 COMPILER V9.53.0.0   MAIN                                                              05/31/2017 16:18:55 PAGE 5   
+C51 COMPILER V9.53.0.0   MAIN                                                              06/03/2017 16:28:17 PAGE 5   
 
  242   1      
  243   1         SFRPAGE = SFRPAGE_save;
@@ -318,7 +318,7 @@ line level    source
  301   1                                             // Module Interrupts
  302   1                                             // Enable access to bit timing register
  303   1      
-C51 COMPILER V9.53.0.0   MAIN                                                              05/31/2017 16:18:55 PAGE 6   
+C51 COMPILER V9.53.0.0   MAIN                                                              06/03/2017 16:28:17 PAGE 6   
 
  304   1         // See the CAN Bit Timing Spreadsheet for how to calculate this value
  305   1         CAN0BT = 0x1402;                    // Based on 24 Mhz CAN clock, set the
@@ -382,7 +382,7 @@ line level    source
  363   1         CAN0IF1CR = IPM_ID;                // Start command request
  364   1      
  365   1         while (CAN0IF1CRH & 0x80) {}       // Poll on Busy bit
-C51 COMPILER V9.53.0.0   MAIN                                                              05/31/2017 16:18:55 PAGE 7   
+C51 COMPILER V9.53.0.0   MAIN                                                              06/03/2017 16:28:17 PAGE 7   
 
  366   1      
  367   1         CAN0IF1A2 = 0xA000 | (CP16_ID << 2);  // Set MsgVal to valid
@@ -446,18 +446,18 @@ line level    source
  425          //Calculate the pressure detect by ADC
  426          
  427          void PressureCal()
-C51 COMPILER V9.53.0.0   MAIN                                                              05/31/2017 16:18:55 PAGE 8   
+C51 COMPILER V9.53.0.0   MAIN                                                              06/03/2017 16:28:17 PAGE 8   
 
  428          {
- 429   1        P_mA_current_ERT=((((( RESULT[1]/4095.0*1000)*1.5*10)/3.0))/250.0);
- 430   1        pressure_current_ERT=(int)(62.5*P_mA_current_ERT-243.0);//单位KPa 
- 431   1        pressureERT_H=((pressure_current_ERT/1000)<<4)|(pressure_current_ERT%1000/100);
- 432   1        pressureERT_L=((pressure_current_ERT%100/10)<<4)|(pressure_current_ERT%10); 
+ 429   1        P_mA_current_ERT=((((( RESULT[1] / 4095.0 * 1000) * 1.5 * 10) / 3.0)) / 250.0);
+ 430   1        pressure_current_ERT=(int)(62.5 * P_mA_current_ERT - 243.0);//单位KPa 
+ 431   1        pressureERT_H=((pressure_current_ERT / 1000) << 4)|(pressure_current_ERT % 1000 / 100);
+ 432   1        pressureERT_L=((pressure_current_ERT % 100 / 10) << 4) | (pressure_current_ERT  % 10);  
  433   1      
- 434   1        P_mA_current_MRT=((((( RESULT[0]/4095.0*1000)*1.5*10)/3.0))/250.0);
- 435   1        pressure_current_MRT=(int)(62.5*P_mA_current_MRT-243.0);//单位KPa
- 436   1        pressureMRT_H=((pressure_current_MRT/1000)<<4)|(pressure_current_MRT%1000/100);
- 437   1        pressureMRT_L=((pressure_current_MRT%100/10)<<4)|(pressure_current_MRT%10);
+ 434   1        P_mA_current_MRT=((((( RESULT[0] / 4095.0 * 1000) * 1.5 * 10) / 3.0)) / 250.0);
+ 435   1        pressure_current_MRT=(int)(62.5 * P_mA_current_MRT - 243.0);//单位KPa
+ 436   1        pressureMRT_H=((pressure_current_MRT / 1000) << 4)|(pressure_current_MRT % 1000 / 100);
+ 437   1        pressureMRT_L=((pressure_current_MRT % 100 / 10) << 4)|(pressure_current_MRT % 10);
  438   1      }
  439          
  440          
@@ -510,7 +510,7 @@ line level    source
  487   1                                             // Interrupt bit pending in CAN0IID
  488   1      
  489   1         U8 Interrupt_ID = CAN0IID;          // Read which message object caused
-C51 COMPILER V9.53.0.0   MAIN                                                              05/31/2017 16:18:55 PAGE 9   
+C51 COMPILER V9.53.0.0   MAIN                                                              06/03/2017 16:28:17 PAGE 9   
 
  490   1                                             // the interrupt
  491   1         // The CAN0ND registers tell which of the 32 message objects are new.
@@ -554,7 +554,7 @@ line level    source
  529   3            Rx_ERCP_OK = 1;
  530   3          }
  531   2          if(Interrupt_ID == Broadcast_ID  && CAN_Rx_Buf[2] == IPM_ID)
- 532   2          {Rx_ERCP_OK = 1;
+ 532   2          {
  533   3            if( CAN_Rx_Buf[1] == 0x01)
  534   3            {
  535   4              switch(CAN_Rx_Buf[0])
@@ -570,192 +570,219 @@ line level    source
  545   4          
  546   4              CAN_Tx_Buf[0] = CAN_Rx_Buf[0];
  547   4              CAN_Tx_Buf[1] = CAN_Rx_Buf[1];
- 548   4              CAN_Tx_Buf[2] = ERCP_ID;
+ 548   4              CAN_Tx_Buf[2] = BPCP_ID;
  549   4              CAN_Tx_Buf[3] = FaultCode;
  550   4              CAN_Tx_Buf[4] = pressureERT_H;
  551   4              CAN_Tx_Buf[5] = pressureERT_L;
-C51 COMPILER V9.53.0.0   MAIN                                                              05/31/2017 16:18:55 PAGE 10  
+C51 COMPILER V9.53.0.0   MAIN                                                              06/03/2017 16:28:17 PAGE 10  
 
  552   4              CAN_Tx_Buf[6] = pressureMRT_H;
  553   4              CAN_Tx_Buf[7] = pressureMRT_L;
- 554   4              CAN0_TransferMO(Respond_ID);
+ 554   4              //CAN0_TransferMO(Respond_ID);
  555   4            }
- 556   3          }
- 557   2         }
- 558   1         // If an error occured, simply update the global variable and continue
- 559   1         if (status & LEC)
- 560   1         {
- 561   2             // The LEC bits identify the type of error, but those are grouped here
- 562   2             if ((status & LEC) != 0x07)
- 563   2             {
- 564   3                CAN_ERROR = 1;
- 565   3             }
- 566   2         }
- 567   1      
- 568   1         if (status & BOff)
- 569   1         {
- 570   2            CAN_ERROR = 1;
- 571   2         }
- 572   1      
- 573   1         if (status & EWarn)
- 574   1         {
- 575   2            CAN_ERROR = 1;
- 576   2         }
- 577   1      
- 578   1         // Old SFRPAGE is popped off stack when ISR exits
- 579   1      }
- 580          INTERRUPT (TIMER0_ISR, INTERRUPT_TIMER0)
- 581          {
- 582   1        TF0 = 0;
- 583   1        TL0       = 0x90; 
- 584   1        TH0       = 0xE8;     //3ms,based on 2MHz clock 
- 585   1      
- 586   1        PIDControl();
- 587   1        
- 588   1      }
- 589          INTERRUPT (TIMER2_ISR, INTERRUPT_TIMER2)
- 590          {
- 591   1      
- 592   1      //  DisplayNumber(2);
- 593   1         TF2H = 0;                           // Reset Interrupt
- 594   1            // Set up the AMUX for the next ADC input
- 595   1         if (AMUX_INPUT == (ANALOG_INPUTS - 1))
- 596   1         {
- 597   2            ADC0MX = PIN_TABLE[0] | 0x10;
- 598   2         }
- 599   1         else
- 600   1         {
- 601   2            ADC0MX = PIN_TABLE[AMUX_INPUT+1] | 0x10;
- 602   2         }
- 603   1         //SendMessageCAN0(EPCU_ERCP_MO,g_uTx_Data1);
- 604   1         
- 605   1      }
- 606          
- 607          
- 608          /*INTERRUPT (TIMER3_ISR, INTERRUPT_TIMER3)
- 609          {
- 610            TMR3CN &= 0x7F;//clear flag
- 611          
- 612            PWM_APP *= 100;
- 613            PWM_REL *= 100;
-C51 COMPILER V9.53.0.0   MAIN                                                              05/31/2017 16:18:55 PAGE 11  
+ 556   3            else if (CAN_Rx_Buf[1] == 0x11)
+ 557   3            {
+ 558   4              switch(CAN_Rx_Buf[0])
+ 559   4              {
+ 560   5                case 0x01: Yunzhuanwei(); break;
+ 561   5                case 0x02: Chuzhiwei(); break;
+ 562   5                case 0x04: Quanzhidongwei(); break;
+ 563   5                case 0x08: Yizhiwei(); break;
+ 564   5                case 0x10: Chonglianwei(); break;
+ 565   5                case 0x20: Jinjiwei(); break;
+ 566   5                default:break;
+ 567   5              }
+ 568   4          
+ 569   4              CAN_Tx_Buf[0] = CAN_Rx_Buf[0];
+ 570   4              CAN_Tx_Buf[1] = CAN_Rx_Buf[1];
+ 571   4              CAN_Tx_Buf[2] = BPCP_ID;
+ 572   4              CAN_Tx_Buf[3] = FaultCode;
+ 573   4              CAN_Tx_Buf[4] = pressureERT_H;
+ 574   4              CAN_Tx_Buf[5] = pressureERT_L;
+ 575   4              CAN_Tx_Buf[6] = pressureMRT_H;
+ 576   4              CAN_Tx_Buf[7] = pressureMRT_L;
+ 577   4              //CAN0_TransferMO(Respond_ID);
+ 578   4              CAN0_TransferMO(IPM_ID);
+ 579   4              //CAN0_TransferMO (CP16_ID);
+ 580   4            }
+ 581   3          }
+ 582   2         }
+ 583   1         // If an error occured, simply update the global variable and continue
+ 584   1         if (status & LEC)
+ 585   1         {
+ 586   2             // The LEC bits identify the type of error, but those are grouped here
+ 587   2             if ((status & LEC) != 0x07)
+ 588   2             {
+ 589   3                CAN_ERROR = 1;
+ 590   3             }
+ 591   2         }
+ 592   1      
+ 593   1         if (status & BOff)
+ 594   1         {
+ 595   2            CAN_ERROR = 1;
+ 596   2         }
+ 597   1      
+ 598   1         if (status & EWarn)
+ 599   1         {
+ 600   2            CAN_ERROR = 1;
+ 601   2         }
+ 602   1      
+ 603   1         // Old SFRPAGE is popped off stack when ISR exits
+ 604   1      }
+ 605          INTERRUPT (TIMER0_ISR, INTERRUPT_TIMER0)
+ 606          {
+ 607   1        TF0 = 0;
+ 608   1        TL0       = 0x90; 
+ 609   1        TH0       = 0xE8;     //3ms,based on 2MHz clock 
+ 610   1      
+ 611   1        PIDControl();
+ 612   1        
+ 613   1      }
+C51 COMPILER V9.53.0.0   MAIN                                                              06/03/2017 16:28:17 PAGE 11  
 
- 614          
- 615            PWM_Count++;
- 616          
- 617            if(PWM_Count > PWM_Period)
- 618              PWM_Count = 0;
- 619          
- 620            if(PWM_Count < PWM_APP)
- 621              APP_ON;
- 622            else 
- 623              APP_OFF;
- 624          
- 625            if(PWM_Count < PWM_REL)
- 626              REL_ON;
- 627            else
- 628              REL_OFF;
- 629          
- 630          }
- 631          */
+ 614          INTERRUPT (TIMER2_ISR, INTERRUPT_TIMER2)
+ 615          {
+ 616   1      
+ 617   1      //  DisplayNumber(2);
+ 618   1         TF2H = 0;                           // Reset Interrupt
+ 619   1            // Set up the AMUX for the next ADC input
+ 620   1         if (AMUX_INPUT == (ANALOG_INPUTS - 1))
+ 621   1         {
+ 622   2            ADC0MX = PIN_TABLE[0] | 0x10;
+ 623   2         }
+ 624   1         else
+ 625   1         {
+ 626   2            ADC0MX = PIN_TABLE[AMUX_INPUT+1] | 0x10;
+ 627   2         }
+ 628   1         //SendMessageCAN0(EPCU_ERCP_MO,g_uTx_Data1);
+ 629   1         
+ 630   1      }
+ 631          
  632          
- 633          INTERRUPT (ADC0_ISR, INTERRUPT_ADC0_EOC)
+ 633          /*INTERRUPT (TIMER3_ISR, INTERRUPT_TIMER3)
  634          {
- 635   1         static U16 int_dec = INT_DEC;       // Integrate/decimate counter
- 636   1                                             // A new result is posted when
- 637   1                                             // int_dec is 0
- 638   1        
- 639   1         U8 i;                               // Loop counter
- 640   1      
- 641   1      
- 642   1         AD0INT = 0;                         // Clear ADC conversion complete
- 643   1                                             // overflow
- 644   1      
- 645   1      
- 646   1         accumulator[AMUX_INPUT] += ADC0;    // Read the ADC value and add it to the
- 647   1                                             // running total
- 648   1      
- 649   1         // Reset sample counter <int_dec> and <AMUX_INPUT> if the final input was
- 650   1         // just read
- 651   1         if(AMUX_INPUT == (ANALOG_INPUTS - 1))
- 652   1         {
- 653   2            int_dec--;                       // Update decimation counter
- 654   2                                             // when the last of the analog inputs
- 655   2                                             // is sampled
- 656   2      
- 657   2            if (int_dec == 0)                // If zero, then post the averaged
- 658   2            {                                // results
- 659   3               int_dec = INT_DEC;            // Reset counter
- 660   3      
- 661   3               // Copy each averaged ADC0 value into the RESULT array
- 662   3               for(i = 0; i < ANALOG_INPUTS; i++)
- 663   3               {
- 664   4                  // Copy averaged values into RESULT
- 665   4                  RESULT[i] = accumulator[i] / int_dec;
- 666   4      
- 667   4                  // Reset accumulators
- 668   4                  accumulator[i] = 0x00000000;
- 669   4               }
- 670   3            }
- 671   2      
- 672   2            AMUX_INPUT = 0;                  // Reset input index back to P0.1
- 673   2         }
- 674   1         // Otherwise, increment the AMUX channel counter
- 675   1         else
-C51 COMPILER V9.53.0.0   MAIN                                                              05/31/2017 16:18:55 PAGE 12  
+ 635            TMR3CN &= 0x7F;//clear flag
+ 636          
+ 637            PWM_APP *= 100;
+ 638            PWM_REL *= 100;
+ 639          
+ 640            PWM_Count++;
+ 641          
+ 642            if(PWM_Count > PWM_Period)
+ 643              PWM_Count = 0;
+ 644          
+ 645            if(PWM_Count < PWM_APP)
+ 646              APP_ON;
+ 647            else 
+ 648              APP_OFF;
+ 649          
+ 650            if(PWM_Count < PWM_REL)
+ 651              REL_ON;
+ 652            else
+ 653              REL_OFF;
+ 654          
+ 655          }
+ 656          */
+ 657          
+ 658          INTERRUPT (ADC0_ISR, INTERRUPT_ADC0_EOC)
+ 659          {
+ 660   1         static U16 int_dec = INT_DEC;       // Integrate/decimate counter
+ 661   1                                             // A new result is posted when
+ 662   1                                             // int_dec is 0
+ 663   1        
+ 664   1         U8 i;                               // Loop counter
+ 665   1      
+ 666   1      
+ 667   1         AD0INT = 0;                         // Clear ADC conversion complete
+ 668   1                                             // overflow
+ 669   1      
+ 670   1      
+ 671   1         accumulator[AMUX_INPUT] += ADC0;    // Read the ADC value and add it to the
+ 672   1                                             // running total
+ 673   1      
+ 674   1         // Reset sample counter <int_dec> and <AMUX_INPUT> if the final input was
+ 675   1         // just read
+C51 COMPILER V9.53.0.0   MAIN                                                              06/03/2017 16:28:17 PAGE 12  
 
- 676   1         {
- 677   2            AMUX_INPUT++;                    // Step to the next analog mux input
- 678   2         }
- 679   1         //smg_display(0xe,0xa,0xc,18);
- 680   1      }
- 681          
- 682          
- 683          
- 684          
- 685          
- 686          void Yunzhuanwei()
- 687          {
- 688   1        MV53_OFF;
- 689   1        MVEM_OFF;
- 690   1      }
- 691          void Chuzhiwei()
- 692          {
- 693   1        MV53_OFF;
- 694   1        MVEM_OFF;
- 695   1      }
- 696          
- 697          void Quanzhidongwei()
- 698          {
- 699   1        MV53_OFF;
- 700   1        MVEM_OFF;
- 701   1      }
- 702          
- 703          void Yizhiwei()
- 704          {
- 705   1        MV53_OFF;
- 706   1        MVEM_OFF;
- 707   1      }
+ 676   1         if(AMUX_INPUT == (ANALOG_INPUTS - 1))
+ 677   1         {
+ 678   2            int_dec--;                       // Update decimation counter
+ 679   2                                             // when the last of the analog inputs
+ 680   2                                             // is sampled
+ 681   2      
+ 682   2            if (int_dec == 0)                // If zero, then post the averaged
+ 683   2            {                                // results
+ 684   3               int_dec = INT_DEC;            // Reset counter
+ 685   3      
+ 686   3               // Copy each averaged ADC0 value into the RESULT array
+ 687   3               for(i = 0; i < ANALOG_INPUTS; i++)
+ 688   3               {
+ 689   4                  // Copy averaged values into RESULT
+ 690   4                  RESULT[i] = accumulator[i] / int_dec;
+ 691   4      
+ 692   4                  // Reset accumulators
+ 693   4                  accumulator[i] = 0x00000000;
+ 694   4               }
+ 695   3            }
+ 696   2      
+ 697   2            AMUX_INPUT = 0;                  // Reset input index back to P0.1
+ 698   2         }
+ 699   1         // Otherwise, increment the AMUX channel counter
+ 700   1         else
+ 701   1         {
+ 702   2            AMUX_INPUT++;                    // Step to the next analog mux input
+ 703   2         }
+ 704   1         //smg_display(0xe,0xa,0xc,18);
+ 705   1      }
+ 706          
+ 707          
  708          
- 709          void Chonglianwei()
- 710          {
- 711   1        MV53_OFF;
- 712   1        MVEM_OFF;
- 713   1      }
- 714          
- 715          void Jinjiwei()
- 716          {
- 717   1        MV53_ON;
- 718   1        MVEM_ON;
- 719   1      }
- 720          
- 721          //-----------------------------------------------------------------------------
- 722          // End Of File
- 723          //-----------------------------------------------------------------------------
+ 709          
+ 710          
+ 711          void Yunzhuanwei()
+ 712          {
+ 713   1        MV53_OFF;
+ 714   1        MVEM_OFF;
+ 715   1      }
+ 716          void Chuzhiwei()
+ 717          {
+ 718   1        MV53_OFF;
+ 719   1        MVEM_OFF;
+ 720   1      }
+ 721          
+ 722          void Quanzhidongwei()
+ 723          {
+ 724   1        MV53_OFF;
+ 725   1        MVEM_OFF;
+ 726   1      }
+ 727          
+ 728          void Yizhiwei()
+ 729          {
+ 730   1        MV53_OFF;
+ 731   1        MVEM_OFF;
+ 732   1      }
+ 733          
+ 734          void Chonglianwei()
+ 735          {
+ 736   1        MV53_OFF;
+ 737   1        MVEM_OFF;
+C51 COMPILER V9.53.0.0   MAIN                                                              06/03/2017 16:28:17 PAGE 13  
+
+ 738   1      }
+ 739          
+ 740          void Jinjiwei()
+ 741          {
+ 742   1        MV53_ON;
+ 743   1        MVEM_ON;
+ 744   1      }
+ 745          
+ 746          //-----------------------------------------------------------------------------
+ 747          // End Of File
+ 748          //-----------------------------------------------------------------------------
 
 
 MODULE INFORMATION:   STATIC OVERLAYABLE
-   CODE SIZE        =   2467    ----
+   CODE SIZE        =   2596    ----
    CONSTANT SIZE    =   ----    ----
    XDATA SIZE       =     95      14
    PDATA SIZE       =   ----    ----

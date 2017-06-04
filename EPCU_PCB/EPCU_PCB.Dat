@@ -1,0 +1,44 @@
+Field=Comment~String~Comment~100|Field=Description~String~Description~100|Field=Designator~String~Designator~100|Field=Footprint~String~Footprint~100|Field=LibRef~String~LibRef~100|Field=Quantity~Integer~Quantity~100|ReportField=Currency~<none>|ReportField=ProductionQuantity~1|ReportField=ProjectFileName~EPCU_PCB.PrjPcb|ReportField=ProjectFullPath~D:\毕业设计\Job_doing\FinalDesign\EPCU_PCB\EPCU_PCB.PrjPcb|ReportField=Title~Bill of Materials For Project [EPCU_PCB.PrjPcb] (No PCB Document Selected)|ReportField=TotalQuantity~99|ReportField=ReportTime~22:10:33|ReportField=ReportDate~2017/6/4|ReportField=ReportDateTime~2017/6/4 22:10:33|ReportField=OutputName~Bill of Materials|ReportField=OutputType~BOM_PartType|ReportField=GeneratorName~BOM|ReportField=GeneratorDescription~Bill of Materials|ReportField=VariantName~None|ReportField=Address1~|ReportField=Address2~|ReportField=Address3~|ReportField=Address4~|ReportField=Application_BuildNumber~|ReportField=ApprovedBy~|ReportField=Author~|ReportField=CheckedBy~|ReportField=CompanyName~|ReportField=CurrentDate~|ReportField=CurrentTime~|ReportField=Date~|ReportField=DocumentFullPathAndName~|ReportField=DocumentName~|ReportField=DocumentNumber~|ReportField=DrawnBy~|ReportField=Engineer~|ReportField=ImagePath~|ReportField=ModifiedDate~|ReportField=Organization~|ReportField=ProjectName~|ReportField=Revision~|ReportField=Rule~|ReportField=SheetNumber~|ReportField=SheetTotal~|ReportField=Time~|ReportField=Title~|ReportField=DataSourceFileName~EPCU_PCB.PrjPcb|ReportField=DataSourceFullPath~D:\毕业设计\Job_doing\FinalDesign\EPCU_PCB\EPCU_PCB.PrjPcb
+10uF/16V/C|Capacitor|C1, C4, C11, C24, C30|106E|CAPACITOR POL|5
+0.1uF|[NoValue], Capacitor, Capacitor, Capacitor, Capacitor, Capacitor, Capacitor|C2, C8, C12, C13, C18, C19, C20|0805|CAP_S, CAP, CAP, CAP, CAP, CAP, CAP|7
+104/50V|Capacitor|C3, C6, C21, C22, C31|0805|CAP|5
+104|Capacitor|C5, C15, C26, C32, C34, C35|0805|CAP|6
+1uF|Capacitor|C7|0805|CAP|1
+10uF|Capacitor|C9, C10, C16, C17|106E|CAPACITOR POL|4
+4.7uF|Capacitor|C14|106E|CAPACITOR POL|1
+10uF||C33|RB.2/.4|Pro12.tmp_22uF_5|1
+1N4007|1 Amp General Purpose Rectifier|D1, D2, D3, D4|DO-41|Diode 1N4007|4
+Diode 1N4001|1 Amp General Purpose Rectifier|D5|DO-41|Diode 1N4001|1
+red||DS1, DS2|1206DIODE|LED|2
+green||DS3|1206DIODE|LED|1
+LED1|1206|DS4, DS5|1206DIODE|LED|2
+HEADER 3||J1|254-3|HEADER 3|1
+JTAG||J2|DC3-10P|HEADER 5X2|1
+Header 6|Header, 6-Pin|J4|HDR1X6|Header 6|1
+CON4|zhijiao|JB1, JB3|SIP4|CON4|2
+CON9|connector|JB2|SIP9|CON9|1
+CON2||JB4|POWER2|CON2|1
+RELAY||JDQ1|jidianqi_12VDC|RELAY|1
+KEY6||K1, K2|KEY6|KEY6|2
+9013|NPN Bipolar Transistor|Q1, Q2|TO-226-AA|NPN|2
+4.7K||R1, R12, R21, R23, R24, R33, R34, R35|0805|RES-S|8
+10K||R2, R4, R8, R9, R13, R15, R17, R18|0805|RES2|8
+250欧||R3, R11, R19, R31|AXIAL0.4|RES2|4
+1K||R5, R6, R7, R16|0805|RES-S, RES2, RES-S, RES2|4
+2R||R10|0805|RES-S|1
+0R||R14|0805|RES-S|1
+100K欧||R20|AXIAL0.4|RES2|1
+511||R22, R26, R28, R30, R32|0805|RES2|5
+8.87K||R25|AXIAL0.4|RES2|1
+5.1K||R27|0805|RES2|1
+511||R29|1206DIODE|RES2|1
+HDW24S5||S1|HDW24S5|HDW24S5|1
+LEDS4-14||S2|LEDS4-14|LEDS4-14|1
+||U1|CYM1050T|CTM1050T|1
+LM324||U2|lm324|LM324|1
+IRF7853PBF||U3|SOP-8|IRF7853PBF|1
+IRF7853PBF||U4|SO-8|IRF7853PBF|1
+TLP521-1||U6, U7|TLP521-1|TLP521-1|2
+C8051F500||U8|TQFP-48|C8051F500/1/4/5|1
+74ALS574||U9, U10|SOL-20|74ALS574|2
+AT24C64A||U11|SO-8|AT24CXXA|1
