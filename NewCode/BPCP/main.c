@@ -92,7 +92,7 @@ bit CAN_ERROR = 0;                     // 0 = No Errors occurred
                                        // 1 = Some error(s) occurred
 U8 FaultCode = 0x00;
 
-U8 CAN_Tx_Buf[8] = {0xf1, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08};
+U8 CAN_Tx_Buf[8] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 U8 CAN_Rx_Buf[8];
 U8 CAN_RX_COMPLETE;               
 bit Rx_ERCP_OK ;
@@ -106,12 +106,12 @@ U8 PWM_Period = 100;
 U8 PWM_APP = 0;
 U8 PWM_REL = 0;
 
-U32 Target_ERT_Pressure  ;
+U32 Target_BPT_Pressure  ;
 
-U32 pressure_current_ERT;
-U16 pressureERT_H;
-U16 pressureERT_L;
-float P_mA_current_ERT=0 ;
+U32 pressure_current_BPT;
+U16 pressureBPT_H;
+U16 pressureBPT_L;
+float P_mA_current_BPT=0 ;
 
 
 U32 pressure_current_MRT;
@@ -120,6 +120,7 @@ U16 pressureMRT_L;
 float P_mA_current_MRT=0 ;
 
 float error, sumerror, lasterror, kp, ki, kd;
+unsigned int TxCount,Tx;
 //-----------------------------------------------------------------------------
 // MAIN Routine
 //-----------------------------------------------------------------------------
@@ -139,7 +140,7 @@ void main (void)
    RESULT[0]=0;
 	 RESULT[1]=0;
 
-	 //EIE1 |= 0x40;
+	// EIE1 |= 0x40;
    EIE2 |= 0x02;                       // Enable CAN interupts
    EA = 1;                             // Enable global interrupts
    P2 |= 0xC0;
@@ -153,6 +154,20 @@ void main (void)
 				Rx_ERCP_OK = 0;
 				CAN0_TransferMO (CP16_ID);
 			}
+			CAN_Tx_Buf[0] = CAN_Rx_Buf[0];
+			CAN_Tx_Buf[1] = CAN_Rx_Buf[1];
+			CAN_Tx_Buf[2] = BPCP_ID;
+			CAN_Tx_Buf[3] = FaultCode;
+			CAN_Tx_Buf[4] = 0x1;
+			CAN_Tx_Buf[5] = 0x2c;
+			CAN_Tx_Buf[6] = 0x2;
+			CAN_Tx_Buf[7] = 0xbc;
+			TxCount++;
+		if(TxCount > 1000 )
+		{	
+			CAN0_TransferMO(IPM_ID);
+			TxCount = 0;
+		}
 	}
 }
 
@@ -426,10 +441,10 @@ void CAN0_TransferMO (U8 obj_num)
 
 void PressureCal()
 {
-	P_mA_current_ERT=((((( RESULT[1] / 4095.0 * 1000) * 1.5 * 10) / 3.0)) / 250.0);
-	pressure_current_ERT=(int)(62.5 * P_mA_current_ERT - 243.0);//单位KPa	
-	pressureERT_H=((pressure_current_ERT / 1000) << 4)|(pressure_current_ERT % 1000 / 100);
-	pressureERT_L=((pressure_current_ERT % 100 / 10) << 4) | (pressure_current_ERT  % 10);	
+	P_mA_current_BPT=((((( RESULT[1] / 4095.0 * 1000) * 1.5 * 10) / 3.0)) / 250.0);
+	pressure_current_BPT=(int)(62.5 * P_mA_current_BPT - 243.0);//单位KPa	
+	pressureBPT_H=((pressure_current_BPT / 1000) << 4)|(pressure_current_BPT % 1000 / 100);
+	pressureBPT_L=((pressure_current_BPT % 100 / 10) << 4) | (pressure_current_BPT  % 10);	
 
 	P_mA_current_MRT=((((( RESULT[0] / 4095.0 * 1000) * 1.5 * 10) / 3.0)) / 250.0);
 	pressure_current_MRT=(int)(62.5 * P_mA_current_MRT - 243.0);//单位KPa
@@ -442,7 +457,7 @@ void PressureCal()
 void PIDControl()
 {	
 	float derror, Uout;
-	error = Target_ERT_Pressure - pressure_current_ERT/100.0;  
+	error = Target_BPT_Pressure - pressure_current_BPT/100.0;  
 	sumerror += error;
 	derror = error - lasterror;
 	lasterror = error;
@@ -524,7 +539,7 @@ INTERRUPT (CAN0_ISR, INTERRUPT_CAN0)
       CAN_Rx_Buf[7] = CAN0IF1DB2H;
       CAN_RX_COMPLETE = 1;
 	
-		 if(Interrupt_ID == BPCP_ID && CAN_Rx_Buf[2] == ERCP_ID && CAN_Rx_Buf[3] == 0x00)
+		 if(Interrupt_ID == BPCP_ID && CAN_Rx_Buf[2] == ERCP_ID )
 		{
 			Rx_ERCP_OK = 1;
 		}
@@ -547,11 +562,12 @@ INTERRUPT (CAN0_ISR, INTERRUPT_CAN0)
 				CAN_Tx_Buf[1] = CAN_Rx_Buf[1];
 				CAN_Tx_Buf[2] = BPCP_ID;
 				CAN_Tx_Buf[3] = FaultCode;
-				CAN_Tx_Buf[4] = pressureERT_H;
-				CAN_Tx_Buf[5] = pressureERT_L;
+				CAN_Tx_Buf[4] = pressureBPT_H;
+				CAN_Tx_Buf[5] = pressureBPT_L;
 				CAN_Tx_Buf[6] = pressureMRT_H;
 				CAN_Tx_Buf[7] = pressureMRT_L;
 				//CAN0_TransferMO(Respond_ID);
+				
 			}
 			else if (CAN_Rx_Buf[1] == 0x11)
 			{
@@ -565,13 +581,13 @@ INTERRUPT (CAN0_ISR, INTERRUPT_CAN0)
 					case 0x20: Jinjiwei(); break;
 					default:break;
 				}
-		
+				FaultCode = 0x11;
 				CAN_Tx_Buf[0] = CAN_Rx_Buf[0];
 				CAN_Tx_Buf[1] = CAN_Rx_Buf[1];
 				CAN_Tx_Buf[2] = BPCP_ID;
 				CAN_Tx_Buf[3] = FaultCode;
-				CAN_Tx_Buf[4] = pressureERT_H;
-				CAN_Tx_Buf[5] = pressureERT_L;
+				CAN_Tx_Buf[4] = pressureBPT_H;
+				CAN_Tx_Buf[5] = pressureBPT_L;
 				CAN_Tx_Buf[6] = pressureMRT_H;
 				CAN_Tx_Buf[7] = pressureMRT_L;
 				//CAN0_TransferMO(Respond_ID);
@@ -609,6 +625,20 @@ INTERRUPT (TIMER0_ISR, INTERRUPT_TIMER0)
   TH0       = 0xE8;			//3ms,based on 2MHz clock 
 
 	PIDControl();
+//	TxCount++;
+//	if(TxCount>10000 && CAN_Rx_Buf[1] == 0x01)
+//	{
+//		TxCount=0;
+//		CAN_Tx_Buf[0] = CAN_Rx_Buf[0];
+//		CAN_Tx_Buf[1] = CAN_Rx_Buf[1];
+//		CAN_Tx_Buf[2] = BPCP_ID;
+//		CAN_Tx_Buf[3] = FaultCode;
+//		CAN_Tx_Buf[4] = pressureBPT_H;
+//		CAN_Tx_Buf[5] = pressureBPT_L;
+//		CAN_Tx_Buf[6] = 700>>8&0xff;
+//		CAN_Tx_Buf[7] = 700&0xff;
+//		CAN0_TransferMO(IPM_ID);
+//	}
 	
 }
 INTERRUPT (TIMER2_ISR, INTERRUPT_TIMER2)
@@ -626,13 +656,13 @@ INTERRUPT (TIMER2_ISR, INTERRUPT_TIMER2)
       ADC0MX = PIN_TABLE[AMUX_INPUT+1] | 0x10;
    }
    //SendMessageCAN0(EPCU_ERCP_MO,g_uTx_Data1);
-   
+  
 }
 
 
-/*INTERRUPT (TIMER3_ISR, INTERRUPT_TIMER3)
+INTERRUPT (TIMER3_ISR, INTERRUPT_TIMER3)
 {
-	TMR3CN &= 0x7F;//clear flag
+	/*TMR3CN &= 0x7F;//clear flag
 
 	PWM_APP *= 100;
 	PWM_REL *= 100;
@@ -651,9 +681,10 @@ INTERRUPT (TIMER2_ISR, INTERRUPT_TIMER2)
 		REL_ON;
 	else
 		REL_OFF;
-
-}
 */
+	
+}
+
 
 INTERRUPT (ADC0_ISR, INTERRUPT_ADC0_EOC)
 {

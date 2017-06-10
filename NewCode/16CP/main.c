@@ -129,6 +129,7 @@ U16 pressureMRT_L;
 float P_mA_current_MRT=0 ;
 
 float error, sumerror, lasterror, kp, ki, kd;
+U32 TxCount;
 //-----------------------------------------------------------------------------
 // MAIN Routine
 //-----------------------------------------------------------------------------
@@ -159,6 +160,23 @@ void main (void)
 				CAN0_TransferMO(IPM_ID);
 				Rx_BPCP_OK = 0;
 			}
+			// if( CAN_Rx_Buf[1] == 0x01)
+		 {
+			 	CAN_Tx_Buf[0] = CAN_Rx_Buf[0];
+				CAN_Tx_Buf[1] = CAN_Rx_Buf[1];
+				CAN_Tx_Buf[2] = CP16_ID;
+				CAN_Tx_Buf[3] = FaultCode;
+				CAN_Tx_Buf[4] = 0x01;
+				CAN_Tx_Buf[5] = 0x4a;
+				CAN_Tx_Buf[6] = 0x01;
+				CAN_Tx_Buf[7] = 0x2c;
+			}
+		 TxCount++;
+		if(TxCount > 1000 )
+		{	
+			CAN0_TransferMO(IPM_ID);
+			TxCount = 0;
+		}
    }
 }
 
@@ -540,7 +558,7 @@ INTERRUPT (CAN0_ISR, INTERRUPT_CAN0)
       CAN_Rx_Buf[6] = CAN0IF1DB2L;
       CAN_Rx_Buf[7] = CAN0IF1DB2H;
       CAN_RX_COMPLETE = 1;
-	if(Interrupt_ID == CP16_ID && CAN_Rx_Buf[2] == BPCP_ID && CAN_Rx_Buf[3] == 0x00)
+	if(Interrupt_ID == CP16_ID && CAN_Rx_Buf[2] == BPCP_ID )
 	{
 		Rx_BPCP_OK = 1;
 	}
@@ -578,7 +596,7 @@ INTERRUPT (CAN0_ISR, INTERRUPT_CAN0)
 		CAN_Tx_Buf[0] = CAN_Rx_Buf[0];
 		CAN_Tx_Buf[1] = CAN_Rx_Buf[1];
 		CAN_Tx_Buf[2] = CP16_ID;
-		CAN_Tx_Buf[3] = FaultCode;
+		CAN_Tx_Buf[3] = 0x00;
 		CAN_Tx_Buf[4] = pressureERT_H;
 		CAN_Tx_Buf[5] = pressureERT_L;
 		CAN_Tx_Buf[6] = pressureMRT_H;
@@ -600,6 +618,7 @@ INTERRUPT (CAN0_ISR, INTERRUPT_CAN0)
 				case 0x20: Jinjiwei(); break;
 				default:break;
 			}
+			FaultCode = 0x11;
 		CAN_Tx_Buf[0] = CAN_Rx_Buf[0];
 		CAN_Tx_Buf[1] = CAN_Rx_Buf[1];
 		CAN_Tx_Buf[2] = CP16_ID;
@@ -685,6 +704,20 @@ INTERRUPT (TIMER3_ISR, INTERRUPT_TIMER3)
 		REL_ON;
 	else
 		REL_OFF;
+//	TxCount++;
+//	if(TxCount>10000 && CAN_Rx_Buf[1] == 0x01)
+//	{
+//		TxCount=0;
+//		CAN_Tx_Buf[0] = CAN_Rx_Buf[0];
+//		CAN_Tx_Buf[1] = CAN_Rx_Buf[1];
+//		CAN_Tx_Buf[2] = CP16_ID;
+//		CAN_Tx_Buf[3] = FaultCode;
+//		CAN_Tx_Buf[4] = 350>>8&0xff;
+//		CAN_Tx_Buf[5] = 350&0xff;
+//		CAN_Tx_Buf[6] = 700>>8&0xff;
+//		CAN_Tx_Buf[7] = 700&0xff;
+//		CAN0_TransferMO(IPM_ID);
+//	}
 
 }
 
@@ -742,12 +775,25 @@ INTERRUPT (ADC0_ISR, INTERRUPT_ADC0_EOC)
 void Yunzhuanwei()
 {
 	MV16_ON;
-	APP_OFF;
-	//REL_ON;
+	if( CAN_Rx_Buf[1] == 0x11 )
+	{
+		MV16_OFF;
+		APP_ON;
+		REL_OFF;
+	}
+	else
+	{
+		APP_OFF;
+		REL_ON;
+	}
 }
 void Chuzhiwei()
 {
 	MV16_ON;
+	if( CAN_Rx_Buf[1] == 0x11 )
+	{
+		MV16_OFF;
+	}
 	APP_ON;
 	REL_OFF;
 }
@@ -755,6 +801,10 @@ void Chuzhiwei()
 void Quanzhidongwei()
 {
 	MV16_ON;
+	if( CAN_Rx_Buf[1] == 0x11 )
+	{
+		MV16_OFF;
+	}
 	APP_ON;
 	REL_OFF;
 }
@@ -762,6 +812,10 @@ void Quanzhidongwei()
 void Yizhiwei()
 {
 	MV16_ON;
+	if( CAN_Rx_Buf[1] == 0x11 )
+	{
+		MV16_OFF;
+	}
 	APP_ON;
 	REL_OFF;
 }
@@ -769,6 +823,10 @@ void Yizhiwei()
 void Chonglianwei()
 {
 	MV16_ON;
+	if( CAN_Rx_Buf[1] == 0x11 )
+	{
+		MV16_OFF;
+	}
 	APP_ON;
 	REL_OFF;
 }
@@ -776,6 +834,10 @@ void Chonglianwei()
 void Jinjiwei()
 {
 	MV16_ON;
+	if( CAN_Rx_Buf[1] == 0x11 )
+	{
+		MV16_OFF;
+	}
 	APP_ON;
 	REL_OFF;
 }

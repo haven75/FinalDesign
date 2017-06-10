@@ -36,6 +36,7 @@ void Jinjiwei(void);
 
 INTERRUPT_PROTO (CAN0_ISR, INTERRUPT_CAN0);
 INTERRUPT_PROTO (TIMER2_ISR, INTERRUPT_TIMER2);
+U32 TxCount;
 
 //-----------------------------------------------------------------------------
 // Global Constants
@@ -477,7 +478,20 @@ INTERRUPT (TIMER2_ISR, INTERRUPT_TIMER2)
 
 //	DisplayNumber(2);
    TF2H = 0;                           // Reset Interrupt
-   
+   	TxCount++;
+	if(TxCount>10000 && CAN_Rx_Buf[1] == 0x01)
+	{
+		TxCount=0;
+		CAN_Tx_Buf[0] = CAN_Rx_Buf[0];
+		CAN_Tx_Buf[1] = CAN_Rx_Buf[1];
+		CAN_Tx_Buf[2] = BPCP_ID;
+		CAN_Tx_Buf[3] = FaultCode;
+		CAN_Tx_Buf[4] = 300>>8&0xff;
+		CAN_Tx_Buf[5] = 300&0xff;
+		CAN_Tx_Buf[6] = 700>>8&0xff;
+		CAN_Tx_Buf[7] = 700&0xff;
+		CAN0_TransferMO(IPM_ID);
+	}
 }
 
 

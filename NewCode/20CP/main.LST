@@ -1,4 +1,4 @@
-C51 COMPILER V9.53.0.0   MAIN                                                              06/03/2017 16:22:16 PAGE 1   
+C51 COMPILER V9.53.0.0   MAIN                                                              06/10/2017 01:00:40 PAGE 1   
 
 
 C51 COMPILER V9.53.0.0, COMPILATION OF MODULE MAIN
@@ -32,541 +32,770 @@ line level    source
   23          void PORT_Init (void);
   24          void CAN0_Init (void);
   25          void ADC0_Init(void);
-  26          void Timer2_Init(void);
+  26          void Timer_Init(void);
   27           
-  28          void CAN0_TransferMO (U8 obj_num);
-  29          void Yunzhuanwei(void);
-  30          void Chuzhiwei(void);
-  31          void Quanzhidongwei(void);
-  32          void Yizhiwei(void);
-  33          void Chonglianwei(void);
-  34          void Jinjiwei(void);
-  35          void Syunzhuanwei();
-  36          void Szhidongwei();
-  37          void Ceya();
-  38          
-  39          INTERRUPT_PROTO (CAN0_ISR, INTERRUPT_CAN0);
-  40          INTERRUPT_PROTO (TIMER2_ISR, INTERRUPT_TIMER2);
+  28          void PressureCal();
+  29          void PIDControl();
+  30          
+  31          void CAN0_TransferMO (U8 obj_num);
+  32          void Yunzhuanwei(void);
+  33          void Chuzhiwei(void);
+  34          void Quanzhidongwei(void);
+  35          void Yizhiwei(void);
+  36          void Chonglianwei(void);
+  37          void Jinjiwei(void);
+  38          void Syunzhuanwei();
+  39          void Szhidongwei();
+  40          void Ceya();
   41          
-  42          //-----------------------------------------------------------------------------
-  43          // Global Constants
-  44          //-----------------------------------------------------------------------------
-  45          
-  46          #define SYSCLK       24000000          // System clock speed in Hz
+  42          INTERRUPT_PROTO (CAN0_ISR, INTERRUPT_CAN0);
+  43          INTERRUPT_PROTO (TIMER0_ISR, INTERRUPT_TIMER0);
+  44          INTERRUPT_PROTO (TIMER2_ISR, INTERRUPT_TIMER2);
+  45          INTERRUPT_PROTO (TIMER3_ISR, INTERRUPT_TIMER3);
+  46          INTERRUPT_PROTO (ADC0_ISR, INTERRUPT_ADC0_EOC);
   47          
-  48          #define MESSAGE_OBJECTS    32          // Number of message objects to use
-  49                                                 // Range is 1-32
-  50          #define MESSAGE_SIZE        8          // Size in bytes of each CAN message
-  51                                                 // Range is 1-8
-  52          
-  53          #define RX_COMPLETE_MASK  0xFFFFFFFF   // Set this to (2^MESSAGE_OBJECTS - 1)
-  54          
-  55          //-----------------------------------------------------------------------------
-C51 COMPILER V9.53.0.0   MAIN                                                              06/03/2017 16:22:16 PAGE 2   
+  48          //-----------------------------------------------------------------------------
+  49          // Global Constants
+  50          //-----------------------------------------------------------------------------
+  51          
+  52          #define SYSCLK       24000000          // System clock speed in Hz
+  53          
+  54          #define MESSAGE_OBJECTS    32          // Number of message objects to use
+  55                                                 // Range is 1-32
+C51 COMPILER V9.53.0.0   MAIN                                                              06/10/2017 01:00:40 PAGE 2   
 
-  56          // Bit Definition Masks
-  57          //-----------------------------------------------------------------------------
+  56          #define MESSAGE_SIZE        8          // Size in bytes of each CAN message
+  57                                                 // Range is 1-8
   58          
-  59          // CAN0STAT
-  60          #define BOff  0x80                     // Busoff Status
-  61          #define EWarn 0x40                     // Warning Status
-  62          #define EPass 0x20                     // Error Passive
-  63          #define RxOk  0x10                     // Receive Message Successfully
-  64          #define TxOk  0x08                     // Transmitted Message Successfully
-  65          #define LEC   0x07                     // Last Error Code
-  66          
-  67          //-----------------------------------------------------------------------------
-  68          // Pin Definitions
-  69          //-----------------------------------------------------------------------------
-  70          
-  71          SBIT (LED, SFR_P1, 3);                 // LED = 1 turns on the LED
+  59          #define RX_COMPLETE_MASK  0xFFFFFFFF   // Set this to (2^MESSAGE_OBJECTS - 1)
+  60          
+  61          //-----------------------------------------------------------------------------
+  62          // Bit Definition Masks
+  63          //-----------------------------------------------------------------------------
+  64          
+  65          // CAN0STAT
+  66          #define BOff  0x80                     // Busoff Status
+  67          #define EWarn 0x40                     // Warning Status
+  68          #define EPass 0x20                     // Error Passive
+  69          #define RxOk  0x10                     // Receive Message Successfully
+  70          #define TxOk  0x08                     // Transmitted Message Successfully
+  71          #define LEC   0x07                     // Last Error Code
   72          
   73          //-----------------------------------------------------------------------------
-  74          // Global Variables
+  74          // Pin Definitions
   75          //-----------------------------------------------------------------------------
-  76          #define IPM_ID 0x001
-  77          #define EBV_ID 0x002
-  78          #define Broadcast_ID 0x003
-  79          #define ERCP_ID 0x010
-  80          #define BPCP_ID 0x011
-  81          #define CP16_ID 0x012
-  82          #define CP20_ID 0x013
-  83          #define CP13_ID 0x014
-  84          #define TIMER2_RELOAD  200000000
-  85          #define ANALOG_INPUTS    4
-  86          #define MVLT_ON (P1 &= ~0x40)
-  87          #define MVLT_OFF (P1 |= 0x40)
-  88          #define APP_ON ( P2 &= ~0x40)
-  89          #define APP_OFF (P2 |= 0x40)
-  90          #define REL_ON (P2 &= ~0x80)
-  91          #define REL_OFF (P2 |= 0x80)
-  92          
-  93          bit CAN_ERROR = 0;                     // 0 = No Errors occurred
-  94                                                 // 1 = Some error(s) occurred
-  95          U8 FaultCode = 0x00 ;
-  96          
-  97          U8 CAN_Tx_Buf[8] = {0xf1, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08};
-  98          U8 CAN_Rx_Buf[8];
-  99          U8 CAN_RX_COMPLETE;       
- 100          U8 Rx_Broadcast_OK = 0;           
- 101          
- 102          U8 PIN_TABLE[ANALOG_INPUTS] = {0x00, 0x01, 0x02, 0x03};
- 103          U8 AMUX_INPUT = 0;
- 104          
- 105          //-----------------------------------------------------------------------------
- 106          // MAIN Routine
- 107          //-----------------------------------------------------------------------------
- 108          
- 109          void main (void)
- 110          {
- 111   1      
- 112   1         SFRPAGE = ACTIVE_PAGE;              // Set for PCA0MD
- 113   1      
- 114   1         PCA0MD &= ~0x40;                    // Disable Watchdog Timer
- 115   1      
- 116   1         OSCILLATOR_Init ();                 // Initialize oscillator
- 117   1         PORT_Init ();                       // Initialize crossbar and GPIO
-C51 COMPILER V9.53.0.0   MAIN                                                              06/03/2017 16:22:16 PAGE 3   
+  76          
+  77          SBIT (LED, SFR_P1, 3);                 // LED = 1 turns on the LED
+  78          
+  79          //-----------------------------------------------------------------------------
+  80          // Global Variables
+  81          //-----------------------------------------------------------------------------
+  82          #define IPM_ID 0x001
+  83          #define EBV_ID 0x002
+  84          #define Broadcast_ID 0x003
+  85          #define ERCP_ID 0x010
+  86          #define BPCP_ID 0x011
+  87          #define CP16_ID 0x012
+  88          #define CP20_ID 0x013
+  89          #define CP13_ID 0x014
+  90          #define ANALOG_INPUTS    4
+  91          #define MVLT_ON (P1 &= ~0x40)
+  92          #define MVLT_OFF (P1 |= 0x40)
+  93          #define APP_ON ( P2 &= ~0x40)
+  94          #define APP_OFF (P2 |= 0x40)
+  95          #define REL_ON (P2 &= ~0x80)
+  96          #define REL_OFF (P2 |= 0x80)
+  97          #define INT_DEC             256        // Integrate and decimate ratio
+  98          
+  99          bit CAN_ERROR = 0;                     // 0 = No Errors occurred
+ 100                                                 // 1 = Some error(s) occurred
+ 101          U8 FaultCode = 0x00 ;
+ 102          
+ 103          U8 CAN_Tx_Buf[8] = {0xf1, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08};
+ 104          U8 CAN_Rx_Buf[8];
+ 105          U8 CAN_RX_COMPLETE;       
+ 106          U8 Rx_Broadcast_OK = 0;           
+ 107          
+ 108          U8 PIN_TABLE[ANALOG_INPUTS] = {0x00, 0x01, 0x02, 0x03};
+ 109          U8 AMUX_INPUT = 0;
+ 110          U32 accumulator[ANALOG_INPUTS];
+ 111          U8 PWM_Count = 0;
+ 112          U8 PWM_Period = 100;
+ 113          U8 PWM_APP = 0;
+ 114          U8 PWM_REL = 0;
+ 115          SEGMENT_VARIABLE (RESULT[ANALOG_INPUTS], U32, xdata);
+ 116          float error, sumerror, lasterror, kp, ki, kd;
+ 117          
+C51 COMPILER V9.53.0.0   MAIN                                                              06/10/2017 01:00:40 PAGE 3   
 
- 118   1         CAN0_Init ();                       // Start CAN peripheral
- 119   1         ADC0_Init ();
- 120   1         Timer2_Init ();
- 121   1      
- 122   1         EIE2 |= 0x02;                       // Enable CAN interupts
- 123   1         EA = 1;                             // Enable global interrupts
- 124   1         P2 |= 0xC0;
- 125   1         while (1)
- 126   1         {
- 127   2      //      if(Rx_Broadcast_OK)
- 128   2      //    {
- 129   2      //      CAN0_TransferMO(IPM_ID);
- 130   2      //      Rx_Broadcast_OK = 0;
- 131   2      //    }
- 132   2            smg_display(2, 0, 0xc, 18);
- 133   2         }
- 134   1      }
+ 118          U32 pressure_current_20TL;
+ 119          float P_mA_current_20TL=0 ;
+ 120          
+ 121          
+ 122          U32 pressure_current_20TT;
+ 123          float P_mA_current_20TT=0 ;
+ 124          U8  pressure20TL_H=0;
+ 125          U8  pressure20TL_L=0;
+ 126          
+ 127          U8  pressure20TT_H=0;
+ 128          U8  pressure20TT_L=0;
+ 129          U32 Target_20TT_Pressure  ;
+ 130          U32 Target_20TL_Pressure  ;
+ 131          U32 TxCount;
+ 132          //-----------------------------------------------------------------------------
+ 133          // MAIN Routine
+ 134          //-----------------------------------------------------------------------------
  135          
- 136          //-----------------------------------------------------------------------------
- 137          // Initialization Subroutines
- 138          //-----------------------------------------------------------------------------
- 139          
- 140          void OSCILLATOR_Init (void)
- 141          {
- 142   1         U8 SFRPAGE_save = SFRPAGE;
- 143   1         SFRPAGE = CONFIG_PAGE;
- 144   1      
- 145   1         OSCICN = 0x87;                      // Set internal oscillator divider to 1
- 146   1      
- 147   1         SFRPAGE = SFRPAGE_save;
- 148   1      }
- 149          
- 150          //-----------------------------------------------------------------------------
- 151          // PORT_Init
- 152          //-----------------------------------------------------------------------------
- 153          
- 154          void PORT_Init (void)
- 155          {
- 156   1         U8 SFRPAGE_save = SFRPAGE;
- 157   1         SFRPAGE  = CONFIG_PAGE;             // Port SFR's on Configuration page
- 158   1      
- 159   1         P0MDOUT  |= 0x40;                   // P0.6 (CAN0 TX) is push-pull
- 160   1         P1MDOUT  |= 0x08;                   // P1.3 (LED) is push-pull
- 161   1         P1MDOUT &= 0xbf;                   //P1^6 open drain for relay
- 162   1        // P2MDIN |= 0xf0;                     //ADC
- 163   1        // P2SKIP |= 0x0f;                     //ADC
- 164   1         P2MDOUT |= 0xc0;                    //P2.6/7 for driving mosfet
- 165   1         P3MDOUT |= 0xff;                            //P3 is push-pull to drive the LED.
- 166   1         P4MDOUT |= 0x03;                            //P4   
- 167   1      
- 168   1         XBR0     = 0x02;                    // Enable CAN0 on Crossbar
- 169   1         XBR2     = 0x40;                    // Enable Crossbar and weak pull-ups
- 170   1      
- 171   1         SFRPAGE = SFRPAGE_save;
- 172   1      }
- 173          
- 174          //-----------------------------------------------------------------------------
- 175          // ADC0_Init
- 176          //-----------------------------------------------------------------------------
- 177          void ADC0_Init(void)
- 178          {
- 179   1        U8 SFRPAGE_save = SFRPAGE;
-C51 COMPILER V9.53.0.0   MAIN                                                              06/03/2017 16:22:16 PAGE 4   
+ 136          void main (void)
+ 137          {
+ 138   1      
+ 139   1         SFRPAGE = ACTIVE_PAGE;              // Set for PCA0MD
+ 140   1      
+ 141   1         PCA0MD &= ~0x40;                    // Disable Watchdog Timer
+ 142   1      
+ 143   1         OSCILLATOR_Init ();                 // Initialize oscillator
+ 144   1         PORT_Init ();                       // Initialize crossbar and GPIO
+ 145   1         CAN0_Init ();                       // Start CAN peripheral
+ 146   1         ADC0_Init ();
+ 147   1         Timer_Init ();
+ 148   1      
+ 149   1         EIE2 |= 0x02;                       // Enable CAN interupts
+ 150   1         EA = 1;                             // Enable global interrupts
+ 151   1         P2 |= 0xC0;
+ 152   1         while (1)
+ 153   1         {
+ 154   2      //      if(Rx_Broadcast_OK)
+ 155   2      //    {
+ 156   2      //      CAN0_TransferMO(IPM_ID);
+ 157   2      //      Rx_Broadcast_OK = 0;
+ 158   2      //    }
+ 159   2            smg_display(2, 0, 0xc, 18);
+ 160   2         }
+ 161   1          {
+ 162   2              CAN_Tx_Buf[0] = CAN_Rx_Buf[0];
+ 163   2              CAN_Tx_Buf[1] = CAN_Rx_Buf[1];
+ 164   2              CAN_Tx_Buf[2] = CP16_ID;
+ 165   2              CAN_Tx_Buf[3] = FaultCode;
+ 166   2              CAN_Tx_Buf[4] = 0x01;
+ 167   2              CAN_Tx_Buf[5] = 0x4a;
+ 168   2              CAN_Tx_Buf[6] = 0x01;
+ 169   2              CAN_Tx_Buf[7] = 0x2c;
+ 170   2            }
+ 171   1           TxCount++;
+ 172   1          if(TxCount > 1000 )
+ 173   1          { 
+ 174   2            CAN0_TransferMO(IPM_ID);
+ 175   2            TxCount = 0;
+ 176   2          }
+ 177   1      }
+ 178          
+ 179          //-----------------------------------------------------------------------------
+C51 COMPILER V9.53.0.0   MAIN                                                              06/10/2017 01:00:40 PAGE 4   
 
- 180   1        SFRPAGE = ACTIVE_PAGE;
- 181   1      
- 182   1        ADC0CF |= 0x01;
- 183   1        ADC0H = 0x04;
- 184   1        ADC0L = 0x6c;
- 185   1        ADC0H = 0x07;
- 186   1        ADC0L = 0xa0;
- 187   1        ADC0H = 0x08;
- 188   1        ADC0L = 0x01;
- 189   1        ADC0CF &= ~0x01;
- 190   1      
- 191   1        ADC0CN = 0x10;           //0 start by writing 1 to AD0BUSY, 1 start by overflow of timer 1 , 3 by timer 2
- 192   1      
- 193   1        REF0CN = 0x33;
- 194   1      
- 195   1        ADC0MX = 0x10| PIN_TABLE[AMUX_INPUT];
- 196   1      
- 197   1        ADC0CF = ((SYSCLK /3000000) - 1) << 3;
- 198   1      
- 199   1      //  EIE1 |= 0x04;
- 200   1      
- 201   1        AD0EN = 1;
- 202   1      
- 203   1        SFRPAGE = SFRPAGE_save;
- 204   1      
- 205   1      }
- 206          
- 207          
- 208          //-----------------------------------------------------------------------------
- 209          // Timer2_Init
- 210          //-----------------------------------------------------------------------------
- 211          void Timer2_Init(void)
- 212          {
- 213   1         U8 SFRPAGE_save = SFRPAGE;
- 214   1         SFRPAGE = ACTIVE_PAGE;
+ 180          // Initialization Subroutines
+ 181          //-----------------------------------------------------------------------------
+ 182          
+ 183          void OSCILLATOR_Init (void)
+ 184          {
+ 185   1         U8 SFRPAGE_save = SFRPAGE;
+ 186   1         SFRPAGE = CONFIG_PAGE;
+ 187   1      
+ 188   1         OSCICN = 0x87;                      // Set internal oscillator divider to 1
+ 189   1      
+ 190   1         SFRPAGE = SFRPAGE_save;
+ 191   1      }
+ 192          
+ 193          //-----------------------------------------------------------------------------
+ 194          // PORT_Init
+ 195          //-----------------------------------------------------------------------------
+ 196          
+ 197          void PORT_Init (void)
+ 198          {
+ 199   1         U8 SFRPAGE_save = SFRPAGE;
+ 200   1         SFRPAGE  = CONFIG_PAGE;             // Port SFR's on Configuration page
+ 201   1        
+ 202   1         P0SKIP |= 0x01;                     // Skip P0.0 (VREF)
+ 203   1         P0MDIN &= ~0x01;                   // Set VREF to analog
+ 204   1         P0MDOUT  |= 0x40;                   // P0.6 (CAN0 TX) is push-pull
+ 205   1         P1MDOUT  |= 0x08;                   // P1.3 (LED) is push-pull
+ 206   1         P1MDOUT &= 0xbf;                   //P1^6 open drain for relay
+ 207   1         P2SKIP |= 0x0f;                     // Skip P2.0,P2.1,P2.2,P2.3(ADC input)
+ 208   1         P2MDIN &= ~0x0f;                   // Set P2.0,P2.1,P2.2,P2.3 as an analog input
+ 209   1         P2MDOUT |= 0xc0;                    //P2.6/7 for driving mosfet
+ 210   1         P3MDOUT |= 0xff;                            //P3 is push-pull to drive the LED.
+ 211   1         P4MDOUT |= 0x03;                            //P4   
+ 212   1      
+ 213   1         XBR0     = 0x02;                    // Enable CAN0 on Crossbar
+ 214   1         XBR2     = 0x40;                    // Enable Crossbar and weak pull-ups
  215   1      
- 216   1         CKCON &= ~0x30;                     // Timer2 uses SYSCLK/12
- 217   1         TMR2CN &= ~0x01;
- 218   1      
- 219   1         TMR2RL = TIMER2_RELOAD;             // Reload value to be used in Timer2
- 220   1         TMR2 = TMR2RL;                      // Init the Timer2 register
- 221   1      
- 222   1         TMR2CN = 0x04;                      // Enable Timer2 in auto-reload mode
- 223   1         ET2 = 1;                            // Timer2 interrupt enabled
- 224   1      
- 225   1         SFRPAGE = SFRPAGE_save;
- 226   1      }
- 227          //-----------------------------------------------------------------------------
- 228          // CAN0_Init
- 229          //-----------------------------------------------------------------------------
- 230          void CAN0_Init (void)
- 231          {
- 232   1         U8 iter;
- 233   1      
- 234   1         U8 SFRPAGE_save = SFRPAGE;
- 235   1         SFRPAGE  = CAN0_PAGE;               // All CAN register are on page 0x0C
- 236   1      
- 237   1         CAN0CN |= 0x01;                     // Start Intialization mode
- 238   1      
- 239   1         //---------Initialize general CAN peripheral settings
- 240   1      
- 241   1         CAN0CN |= 0x4E;                     // Enable Status, Error,
-C51 COMPILER V9.53.0.0   MAIN                                                              06/03/2017 16:22:16 PAGE 5   
+ 216   1         SFRPAGE = SFRPAGE_save;
+ 217   1      }
+ 218          
+ 219          //-----------------------------------------------------------------------------
+ 220          // ADC0_Init
+ 221          //-----------------------------------------------------------------------------
+ 222          void ADC0_Init(void)
+ 223          {
+ 224   1        U8 SFRPAGE_save = SFRPAGE;
+ 225   1         SFRPAGE = ACTIVE_PAGE;
+ 226   1      
+ 227   1        
+ 228   1      
+ 229   1         ADC0CF |= 0x01;                     // Set GAINEN = 1
+ 230   1         ADC0H   = 0x04;                     // Load the ADC0GNH address
+ 231   1         ADC0L   = 0x6C;                     // Load the upper byte of 0x6CA to 
+ 232   1                                             // ADC0GNH
+ 233   1         ADC0H   = 0x07;                     // Load the ADC0GNL address
+ 234   1         ADC0L   = 0xA0;                     // Load the lower nibble of 0x6CA to 
+ 235   1                                             // ADC0GNL
+ 236   1         ADC0H   = 0x08;                     // Load the ADC0GNA address
+ 237   1         ADC0L   = 0x01;                     // Set the GAINADD bit
+ 238   1         ADC0CF &= ~0x01;                    // Set GAINEN = 0
+ 239   1      
+ 240   1         ADC0CN = 0x03;                      // ADC0 disabled, normal tracking,
+ 241   1                                             // conversion triggered on TMR2 overflow
+C51 COMPILER V9.53.0.0   MAIN                                                              06/10/2017 01:00:40 PAGE 5   
 
- 242   1                                             // Module Interrupts
- 243   1                                             // Enable access to bit timing register
- 244   1      
- 245   1         // See the CAN Bit Timing Spreadsheet for how to calculate this value
- 246   1         CAN0BT = 0x1402;                    // Based on 24 Mhz CAN clock, set the
- 247   1                                             // CAN bit rate to 1 Mbps
+ 242   1                                             // Output is right-justified
+ 243   1      
+ 244   1         REF0CN = 0x33;                      // Enable on-chip VREF and buffer
+ 245   1                                             // Set voltage reference to 2.25V
+ 246   1      
+ 247   1         ADC0MX = 0x0A;                      // Set ADC input to P1.2
  248   1      
- 249   1         //---------Initialize settings common to all message objects
+ 249   1         ADC0CF = ((SYSCLK / 3000000) - 1) << 3;   // Set SAR clock to 3MHz
  250   1      
- 251   1         // Command Mask Register
- 252   1         CAN0IF1CM = 0x00F0;                 // Write Operation
- 253   1                                             // Transfer ID Mask, MDir, MXtd
- 254   1                                             // Transfer ID, Dir, Xtd, MsgVal
- 255   1                                             // Transfer Control Bits
- 256   1                                             // Don't set TxRqst or transfer data
- 257   1      
- 258   1         // Mask Registers
- 259   1         CAN0IF1M1 = 0x0000;                 // Mask Bits 15-0 not used for filtering
- 260   1         CAN0IF1M2 = 0x5FFC;                 // Ignore Extended Identifier for
- 261   1                                             // filtering
- 262   1                                             // Used Direction bit for filtering
- 263   1                                             // Use ID bits 28-18 for filtering
- 264   1      
- 265   1         // Arbitration Registers
- 266   1         CAN0IF1A1 = 0x0000;                 // 11-bit ID, so lower 16-bits not used
- 267   1      
- 268   1         // Message Control Registers
- 269   1         CAN0IF1MC = 0x1480 | MESSAGE_SIZE;  // Enable Receive Interrupt
- 270   1                                             // Message Object is a Single Message
- 271   1                                             // Message Size set by #define
- 272   1      
- 273   1      
- 274   1         //---------Initialize unique settings for Rx message object
- 275   1      
- 276   1         // Arbitration Registers
- 277   1         CAN0IF1A2 = 0x8000 | (Broadcast_ID << 2);  // Set MsgVal to valid
- 278   1                                               // Set Object Direction to read
- 279   1                                               // Set 11-bit Identifier to iter
- 280   1      
- 281   1         CAN0IF1CR = Broadcast_ID;                // Start command request
- 282   1      
- 283   1            while (CAN0IF1CRH & 0x80) {}       // Poll on Busy bit
- 284   1      
- 285   1         // Message Control Registers
- 286   1         CAN0IF1MC = 0x0080 | MESSAGE_SIZE;  // Disable Transmit Interrupt
- 287   1                                             // Message Object is a Single Message
- 288   1                                             // Message Size set by #define
- 289   1      
- 290   1         //---------Initialize unique settings for Tx message object
- 291   1         // Arbitration Registers
- 292   1         CAN0IF1A2 = 0xA000 | (IPM_ID << 2);  // Set MsgVal to valid
- 293   1                                               // Set Direction to write
- 294   1                                               // Set 11-bit Identifier to iter
- 295   1      
- 296   1         CAN0IF1CR = IPM_ID;                // Start command request
- 297   1      
- 298   1         while (CAN0IF1CRH & 0x80) {}       // Poll on Busy bit
- 299   1      
- 300   1         //---------Initialize settings for unused message objects
- 301   1      
- 302   1         for (iter = 0; iter < MESSAGE_OBJECTS; iter++)
- 303   1         {
-C51 COMPILER V9.53.0.0   MAIN                                                              06/03/2017 16:22:16 PAGE 6   
+ 251   1         EIE1 |= 0x04;                       // Enable ADC0 conversion complete int.
+ 252   1      
+ 253   1         AD0EN = 1;                          // Enable ADC0
+ 254   1      
+ 255   1         SFRPAGE = SFRPAGE_save;
+ 256   1      
+ 257   1      }
+ 258          
+ 259          
+ 260          //-----------------------------------------------------------------------------
+ 261          // Timer2_Init
+ 262          //-----------------------------------------------------------------------------
+ 263          void Timer_Init(void)
+ 264          {
+ 265   1         U8 SFRPAGE_save = SFRPAGE;
+ 266   1         SFRPAGE = ACTIVE_PAGE;
+ 267   1       
+ 268   1          CKCON = 0x00;     //t1 t0 use the sys-clock/12,t3 t2 refer to TMRXCN
+ 269   1          
+ 270   1         TCON      = 0x00;      //t1 don't run temporarily,t0 don't run 
+ 271   1         TMOD      = 0x21;      //t1 8bit reload timer,t0 16bit timer
+ 272   1         TL0       = 0x90;  
+ 273   1         TH0       = 0xE8;      //3ms,based on 2MHz clock           ×¨ó?óú??DD?D?óê??üá?3ms?¨ê±
+ 274   1         TR0 = 1;
+ 275   1         ET0 = 1;
+ 276   1      
+ 277   1         TMR2CN = 0x00;                      // Stop Timer2; Clear TF2;
+ 278   1                                             // use SYSCLK as timebase, 16-bit
+ 279   1                                             // auto-reload
+ 280   1         CKCON |= 0x10;                      // Select SYSCLK for timer 2 source
+ 281   1         TMR2RL = 65535 - (SYSCLK / 10000);  // Init reload value for 10 us
+ 282   1         TMR2 = 0xFFFF;                      // Set to reload immediately
+ 283   1         ET2 = 1;                            // Enable Timer2 interrupts
+ 284   1         TR2 = 1;                            // Start Timer2
+ 285   1      
+ 286   1         PT2 = 1;
+ 287   1      
+ 288   1          TMR3CN    = 0x00;     //t3 16bit reload timer,don't run,sys-clock/12
+ 289   1          //TMR3RL = 20000;
+ 290   1      ///TMR3 = 0xffff;
+ 291   1          TMR3RLL   = 0x30;
+ 292   1          TMR3RLH   = 0xf8;
+ 293   1          TMR3L     = 0x30;
+ 294   1          TMR3H     = 0xf8;     //    ó?óúS￡?ms?¨ê± */
+ 295   1          TMR3CN |= 0x04;       //run timer3
+ 296   1      
+ 297   1         SFRPAGE = SFRPAGE_save;
+ 298   1      }
+ 299          //-----------------------------------------------------------------------------
+ 300          // CAN0_Init
+ 301          //-----------------------------------------------------------------------------
+ 302          void CAN0_Init (void)
+ 303          {
+C51 COMPILER V9.53.0.0   MAIN                                                              06/10/2017 01:00:40 PAGE 6   
 
- 304   2          if(iter != Broadcast_ID && iter != IPM_ID)
- 305   2         {
- 306   3            // Set remaining message objects to be Ignored
- 307   3            CAN0IF1A2 = 0x0000;              // Set MsgVal to 0 to Ignore
- 308   3            CAN0IF1CR = iter;                // Start command request
- 309   3      
- 310   3            while (CAN0IF1CRH & 0x80) {}     // Poll on Busy bit
- 311   3          }
- 312   2         }
- 313   1      
- 314   1         CAN0CN &= ~0x41;                    // Return to Normal Mode and disable
- 315   1                                             // access to bit timing register
+ 304   1         U8 iter;
+ 305   1      
+ 306   1         U8 SFRPAGE_save = SFRPAGE;
+ 307   1         SFRPAGE  = CAN0_PAGE;               // All CAN register are on page 0x0C
+ 308   1      
+ 309   1         CAN0CN |= 0x01;                     // Start Intialization mode
+ 310   1      
+ 311   1         //---------Initialize general CAN peripheral settings
+ 312   1      
+ 313   1         CAN0CN |= 0x4E;                     // Enable Status, Error,
+ 314   1                                             // Module Interrupts
+ 315   1                                             // Enable access to bit timing register
  316   1      
- 317   1         SFRPAGE = SFRPAGE_save;
- 318   1      }
- 319          
- 320          void CAN0_TransferMO (U8 obj_num)
- 321          {
- 322   1         // This function assumes that the message object is fully initialized
- 323   1         // in CAN0_Init and so all it has to do is fill the data registers and
- 324   1         // initiate transmission
- 325   1      
- 326   1         U8 SFRPAGE_save = SFRPAGE;
- 327   1         SFRPAGE  = CAN0_PAGE;               // All CAN register are on page 0x0C
- 328   1      
- 329   1         // Initialize all 8 data bytes even though they might not be sent
- 330   1         // The number to send was configured earlier by setting Message Control
- 331   1      
- 332   1         CAN0IF1DA1L = *CAN_Tx_Buf;              // Initialize data registers based
- 333   1         CAN0IF1DA1H = *(CAN_Tx_Buf + 1);          // on message object used
- 334   1         CAN0IF1DA2L = *(CAN_Tx_Buf + 2);
- 335   1         CAN0IF1DA2H = *(CAN_Tx_Buf + 3);
- 336   1         CAN0IF1DB1L = *(CAN_Tx_Buf + 4);
- 337   1         CAN0IF1DB1H = *(CAN_Tx_Buf + 5);
- 338   1         CAN0IF1DB2L = *(CAN_Tx_Buf + 6);
- 339   1         CAN0IF1DB2H = *(CAN_Tx_Buf + 7);
- 340   1      
- 341   1         CAN0IF1CM = 0x0087;                 // Set Direction to Write
- 342   1                                             // Write TxRqst, all 8 data bytes
- 343   1      
- 344   1         CAN0IF1CR = obj_num;                // Start command request
+ 317   1         // See the CAN Bit Timing Spreadsheet for how to calculate this value
+ 318   1         CAN0BT = 0x1402;                    // Based on 24 Mhz CAN clock, set the
+ 319   1                                             // CAN bit rate to 1 Mbps
+ 320   1      
+ 321   1         //---------Initialize settings common to all message objects
+ 322   1      
+ 323   1         // Command Mask Register
+ 324   1         CAN0IF1CM = 0x00F0;                 // Write Operation
+ 325   1                                             // Transfer ID Mask, MDir, MXtd
+ 326   1                                             // Transfer ID, Dir, Xtd, MsgVal
+ 327   1                                             // Transfer Control Bits
+ 328   1                                             // Don't set TxRqst or transfer data
+ 329   1      
+ 330   1         // Mask Registers
+ 331   1         CAN0IF1M1 = 0x0000;                 // Mask Bits 15-0 not used for filtering
+ 332   1         CAN0IF1M2 = 0x5FFC;                 // Ignore Extended Identifier for
+ 333   1                                             // filtering
+ 334   1                                             // Used Direction bit for filtering
+ 335   1                                             // Use ID bits 28-18 for filtering
+ 336   1      
+ 337   1         // Arbitration Registers
+ 338   1         CAN0IF1A1 = 0x0000;                 // 11-bit ID, so lower 16-bits not used
+ 339   1      
+ 340   1         // Message Control Registers
+ 341   1         CAN0IF1MC = 0x1480 | MESSAGE_SIZE;  // Enable Receive Interrupt
+ 342   1                                             // Message Object is a Single Message
+ 343   1                                             // Message Size set by #define
+ 344   1      
  345   1      
- 346   1         while (CAN0IF1CRH & 0x80) {}        // Poll on Busy bit
+ 346   1         //---------Initialize unique settings for Rx message object
  347   1      
- 348   1         SFRPAGE = SFRPAGE_save;
- 349   1      }
- 350          //-----------------------------------------------------------------------------
- 351          // Interrupt Service Routines
- 352          //-----------------------------------------------------------------------------
- 353          
- 354          //-----------------------------------------------------------------------------
- 355          // CAN0_ISR
- 356          //-----------------------------------------------------------------------------
- 357          INTERRUPT (CAN0_ISR, INTERRUPT_CAN0)
- 358          {
- 359   1         U8 carry;
- 360   1         UU32 new_data;
+ 348   1         // Arbitration Registers
+ 349   1         CAN0IF1A2 = 0x8000 | (Broadcast_ID << 2);  // Set MsgVal to valid
+ 350   1                                               // Set Object Direction to read
+ 351   1                                               // Set 11-bit Identifier to iter
+ 352   1      
+ 353   1         CAN0IF1CR = Broadcast_ID;                // Start command request
+ 354   1      
+ 355   1            while (CAN0IF1CRH & 0x80) {}       // Poll on Busy bit
+ 356   1      
+ 357   1         // Message Control Registers
+ 358   1         CAN0IF1MC = 0x0080 | MESSAGE_SIZE;  // Disable Transmit Interrupt
+ 359   1                                             // Message Object is a Single Message
+ 360   1                                             // Message Size set by #define
  361   1      
- 362   1         // SFRPAGE is set to CAN0_Page automatically when ISR starts
- 363   1      
- 364   1         U8 status = CAN0STAT;               // Read status, which clears the Status
- 365   1                                             // Interrupt bit pending in CAN0IID
-C51 COMPILER V9.53.0.0   MAIN                                                              06/03/2017 16:22:16 PAGE 7   
+ 362   1         //---------Initialize unique settings for Tx message object
+ 363   1         // Arbitration Registers
+ 364   1         CAN0IF1A2 = 0xA000 | (IPM_ID << 2);  // Set MsgVal to valid
+ 365   1                                               // Set Direction to write
+C51 COMPILER V9.53.0.0   MAIN                                                              06/10/2017 01:00:40 PAGE 7   
 
- 366   1      
- 367   1         U8 Interrupt_ID = CAN0IID;          // Read which message object caused
- 368   1                                             // the interrupt
- 369   1         // The CAN0ND registers tell which of the 32 message objects are new.
- 370   1         // Read data from CAN registers and perform 1-bit right shift with carry
- 371   1         new_data.U8[b0] = CAN0ND1L;         // With a big endian compiler, assign LSB
- 372   1         new_data.U8[b1] = CAN0ND1H;
- 373   1         new_data.U8[b2] = CAN0ND2L;
- 374   1         new_data.U8[b3] = CAN0ND2H;         // Assign MSB
- 375   1         carry = new_data.U8[b0] & 0x01;     // Store carry bit
- 376   1         new_data.U32 = new_data.U32 >> 1;   // Perform 1-bit shift to realign
- 377   1      
- 378   1         if (carry)
- 379   1         { // Add carry if necessary
- 380   2            new_data.U8[b3] = new_data.U8[b3] | 0x80;
- 381   2         }
- 382   1      
- 383   1         // new_data variable will now tell which message object is new.
- 384   1      
- 385   1         CAN0IF1CM = 0x007F;                 // Read all of message object to IF1
- 386   1                                             // Clear IntPnd and newData
- 387   1      
- 388   1         CAN0IF1CR = Interrupt_ID;           // Start command request
- 389   1      
- 390   1         while (CAN0IF1CRH & 0x80) {}           // Poll on Busy bit
- 391   1      
- 392   1         if (status & RxOk )                  // If transmit completed successfully
- 393   1         {
- 394   2             // Read all 8 data bytes to rxdata, even though they might not be valid
- 395   2            CAN_Rx_Buf[0] = CAN0IF1DA1L;
- 396   2            CAN_Rx_Buf[1] = CAN0IF1DA1H;
- 397   2            CAN_Rx_Buf[2] = CAN0IF1DA2L;
- 398   2            CAN_Rx_Buf[3] = CAN0IF1DA2H;
- 399   2            CAN_Rx_Buf[4] = CAN0IF1DB1L;
- 400   2            CAN_Rx_Buf[5] = CAN0IF1DB1H;
- 401   2            CAN_Rx_Buf[6] = CAN0IF1DB2L;
- 402   2            CAN_Rx_Buf[7] = CAN0IF1DB2H;
- 403   2            CAN_RX_COMPLETE = 1;
- 404   2      
- 405   2        if(Interrupt_ID == Broadcast_ID && CAN_Rx_Buf[2] == IPM_ID)
- 406   2        { 
- 407   3          if( CAN_Rx_Buf[1] & 0x01 )
- 408   3          {
- 409   4          //  switch(CAN_Rx_Buf[0])
- 410   4          //  {
- 411   4          //    case 0x01: Yunzhuanwei(); break;
- 412   4          //    case 0x02: Chuzhiwei(); break;
- 413   4          //    case 0x04: Quanzhidongwei(); break;
- 414   4          //    case 0x08: Yizhiwei(); break;
- 415   4          //    case 0x10: Chonglianwei(); break;
- 416   4          //    case 0x20: Jinjiwei(); break;
- 417   4          //    default:break;
- 418   4          //  }
- 419   4      //      CAN_Tx_Buf[0] = CAN_Rx_Buf[0];
- 420   4      //      CAN_Tx_Buf[1] = CAN_Rx_Buf[1];
- 421   4      //      CAN_Tx_Buf[3] = CP20_ID;
- 422   4      //      CAN_Tx_Buf[4] = FaultCode;
- 423   4      //      Rx_Broadcast_OK = 1;
- 424   4          }
- 425   3          else if( CAN_Rx_Buf[1] == 0x02)
- 426   3          {
- 427   4            switch(CAN_Rx_Buf[0])
-C51 COMPILER V9.53.0.0   MAIN                                                              06/03/2017 16:22:16 PAGE 8   
+ 366   1                                               // Set 11-bit Identifier to iter
+ 367   1      
+ 368   1         CAN0IF1CR = IPM_ID;                // Start command request
+ 369   1      
+ 370   1         while (CAN0IF1CRH & 0x80) {}       // Poll on Busy bit
+ 371   1      
+ 372   1         //---------Initialize settings for unused message objects
+ 373   1      
+ 374   1         for (iter = 0; iter < MESSAGE_OBJECTS; iter++)
+ 375   1         {
+ 376   2          if(iter != Broadcast_ID && iter != IPM_ID)
+ 377   2         {
+ 378   3            // Set remaining message objects to be Ignored
+ 379   3            CAN0IF1A2 = 0x0000;              // Set MsgVal to 0 to Ignore
+ 380   3            CAN0IF1CR = iter;                // Start command request
+ 381   3      
+ 382   3            while (CAN0IF1CRH & 0x80) {}     // Poll on Busy bit
+ 383   3          }
+ 384   2         }
+ 385   1      
+ 386   1         CAN0CN &= ~0x41;                    // Return to Normal Mode and disable
+ 387   1                                             // access to bit timing register
+ 388   1      
+ 389   1         SFRPAGE = SFRPAGE_save;
+ 390   1      }
+ 391          
+ 392          void CAN0_TransferMO (U8 obj_num)
+ 393          {
+ 394   1         // This function assumes that the message object is fully initialized
+ 395   1         // in CAN0_Init and so all it has to do is fill the data registers and
+ 396   1         // initiate transmission
+ 397   1      
+ 398   1         U8 SFRPAGE_save = SFRPAGE;
+ 399   1         SFRPAGE  = CAN0_PAGE;               // All CAN register are on page 0x0C
+ 400   1      
+ 401   1         // Initialize all 8 data bytes even though they might not be sent
+ 402   1         // The number to send was configured earlier by setting Message Control
+ 403   1      
+ 404   1         CAN0IF1DA1L = *CAN_Tx_Buf;              // Initialize data registers based
+ 405   1         CAN0IF1DA1H = *(CAN_Tx_Buf + 1);          // on message object used
+ 406   1         CAN0IF1DA2L = *(CAN_Tx_Buf + 2);
+ 407   1         CAN0IF1DA2H = *(CAN_Tx_Buf + 3);
+ 408   1         CAN0IF1DB1L = *(CAN_Tx_Buf + 4);
+ 409   1         CAN0IF1DB1H = *(CAN_Tx_Buf + 5);
+ 410   1         CAN0IF1DB2L = *(CAN_Tx_Buf + 6);
+ 411   1         CAN0IF1DB2H = *(CAN_Tx_Buf + 7);
+ 412   1      
+ 413   1         CAN0IF1CM = 0x0087;                 // Set Direction to Write
+ 414   1                                             // Write TxRqst, all 8 data bytes
+ 415   1      
+ 416   1         CAN0IF1CR = obj_num;                // Start command request
+ 417   1      
+ 418   1         while (CAN0IF1CRH & 0x80) {}        // Poll on Busy bit
+ 419   1      
+ 420   1         SFRPAGE = SFRPAGE_save;
+ 421   1      }
+ 422          
+ 423          
+ 424          
+ 425          //Calculate the pressure detect by ADC
+ 426          
+ 427          void PressureCal()
+C51 COMPILER V9.53.0.0   MAIN                                                              06/10/2017 01:00:40 PAGE 8   
 
- 428   4            {
- 429   5              case 0x01: Syunzhuanwei();break;
- 430   5              case 0x02: Szhidongwei();break;
- 431   5              case 0x04: Ceya();break;
- 432   5              default:break;
- 433   5            } 
- 434   4            CAN_Tx_Buf[0] = CAN_Rx_Buf[0];
- 435   4            CAN_Tx_Buf[1] = CAN_Rx_Buf[1];
- 436   4            CAN_Tx_Buf[2] = CP20_ID;
- 437   4            CAN_Tx_Buf[3] = FaultCode;
- 438   4        
- 439   4            CAN0_TransferMO(IPM_ID);
- 440   4          }
- 441   3      
- 442   3          else if (CAN_Rx_Buf[1] == 0x11)
- 443   3          {
- 444   4            CAN_Tx_Buf[0] = CAN_Rx_Buf[0];
- 445   4            CAN_Tx_Buf[1] = CAN_Rx_Buf[1];
- 446   4            CAN_Tx_Buf[2] = CP20_ID;
- 447   4            CAN_Tx_Buf[3] = FaultCode;
- 448   4          }
- 449   3      
- 450   3        }
- 451   2         }
- 452   1         // If an error occured, simply update the global variable and continue
- 453   1         if (status & LEC)
- 454   1         {
- 455   2             // The LEC bits identify the type of error, but those are grouped here
- 456   2             if ((status & LEC) != 0x07)
- 457   2             {
- 458   3                CAN_ERROR = 1;
- 459   3             }
- 460   2         }
- 461   1      
- 462   1         if (status & BOff)
- 463   1         {
- 464   2            CAN_ERROR = 1;
- 465   2         }
- 466   1      
- 467   1         if (status & EWarn)
- 468   1         {
- 469   2            CAN_ERROR = 1;
- 470   2         }
- 471   1      
- 472   1         // Old SFRPAGE is popped off stack when ISR exits
+ 428          {
+ 429   1          P_mA_current_20TL=((((( RESULT[1]/4095.0*1000)*1.5*10)/3.0))/250.0);
+ 430   1      
+ 431   1          pressure_current_20TL=(int)(62.5*P_mA_current_20TL-243.0);//单位KPa
+ 432   1          
+ 433   1          pressure20TL_H=((pressure_current_20TL/1000)<<4)|(pressure_current_20TL%1000/100);
+ 434   1          pressure20TL_L=((pressure_current_20TL%100/10)<<4)|(pressure_current_20TL%10);  
+ 435   1      
+ 436   1      
+ 437   1          P_mA_current_20TT=((((( RESULT[0]/4095.0*1000)*1.5*10)/3.0))/250.0);
+ 438   1      
+ 439   1          pressure_current_20TT=(int)(62.5*P_mA_current_20TT-243.0);//单位KPa
+ 440   1          
+ 441   1          pressure20TT_H=((pressure_current_20TT/1000)<<4)|(pressure_current_20TT%1000/100);
+ 442   1          pressure20TT_L=((pressure_current_20TT%100/10)<<4)|(pressure_current_20TT%10);  
+ 443   1      
+ 444   1      
+ 445   1      }
+ 446          
+ 447          void PIDControl()
+ 448          { 
+ 449   1        float derror, Uout;
+ 450   1        error = Target_20TL_Pressure - pressure_current_20TL/100.0;  
+ 451   1        sumerror += error;
+ 452   1        derror = error - lasterror;
+ 453   1        lasterror = error;
+ 454   1        
+ 455   1        Uout = kp * error + ki * sumerror + kd * derror;
+ 456   1        
+ 457   1        if(Uout > 0 || Uout == 0)
+ 458   1        {
+ 459   2          Uout /= 100.0;
+ 460   2          PWM_APP = Uout;
+ 461   2          PWM_REL = 0;
+ 462   2          if(Uout > 0 && Uout < 0.3)
+ 463   2            PWM_APP = 0.25;
+ 464   2          if(Uout > 1)
+ 465   2            PWM_APP = 1;
+ 466   2      
+ 467   2        }
+ 468   1        else 
+ 469   1        {
+ 470   2          PWM_APP = 0;
+ 471   2          PWM_REL = 0.23;
+ 472   2        }
  473   1      }
- 474          
- 475          INTERRUPT (TIMER2_ISR, INTERRUPT_TIMER2)
- 476          {
- 477   1      
- 478   1      //  DisplayNumber(2);
- 479   1         TF2H = 0;                           // Reset Interrupt
- 480   1         
- 481   1      }
- 482          
- 483          
- 484          
- 485          void Yunzhuanwei()
- 486          {
+ 474          //-----------------------------------------------------------------------------
+ 475          // Interrupt Service Routines
+ 476          //-----------------------------------------------------------------------------
+ 477          
+ 478          //-----------------------------------------------------------------------------
+ 479          // CAN0_ISR
+ 480          //-----------------------------------------------------------------------------
+ 481          INTERRUPT (CAN0_ISR, INTERRUPT_CAN0)
+ 482          {
+ 483   1         U8 carry;
+ 484   1         UU32 new_data;
+ 485   1      
+ 486   1         // SFRPAGE is set to CAN0_Page automatically when ISR starts
  487   1      
- 488   1      }
- 489          void Chuzhiwei()
-C51 COMPILER V9.53.0.0   MAIN                                                              06/03/2017 16:22:16 PAGE 9   
+ 488   1         U8 status = CAN0STAT;               // Read status, which clears the Status
+ 489   1                                             // Interrupt bit pending in CAN0IID
+C51 COMPILER V9.53.0.0   MAIN                                                              06/10/2017 01:00:40 PAGE 9   
 
- 490          {
- 491   1      
- 492   1      }
- 493          
- 494          void Quanzhidongwei()
- 495          {
- 496   1      
- 497   1      }
- 498          
- 499          void Yizhiwei()
- 500          {
+ 490   1      
+ 491   1         U8 Interrupt_ID = CAN0IID;          // Read which message object caused
+ 492   1                                             // the interrupt
+ 493   1         // The CAN0ND registers tell which of the 32 message objects are new.
+ 494   1         // Read data from CAN registers and perform 1-bit right shift with carry
+ 495   1         new_data.U8[b0] = CAN0ND1L;         // With a big endian compiler, assign LSB
+ 496   1         new_data.U8[b1] = CAN0ND1H;
+ 497   1         new_data.U8[b2] = CAN0ND2L;
+ 498   1         new_data.U8[b3] = CAN0ND2H;         // Assign MSB
+ 499   1         carry = new_data.U8[b0] & 0x01;     // Store carry bit
+ 500   1         new_data.U32 = new_data.U32 >> 1;   // Perform 1-bit shift to realign
  501   1      
- 502   1      }
- 503          
- 504          void Chonglianwei()
- 505          {
+ 502   1         if (carry)
+ 503   1         { // Add carry if necessary
+ 504   2            new_data.U8[b3] = new_data.U8[b3] | 0x80;
+ 505   2         }
  506   1      
- 507   1      }
- 508          
- 509          void Jinjiwei()
- 510          {
- 511   1        
- 512   1      
- 513   1      }
- 514          
- 515          void Syunzhuanwei()
- 516          {
- 517   1        MVLT_ON;
- 518   1        APP_OFF;
- 519   1        REL_ON;
- 520   1      }
- 521          
- 522          void Szhidongwei()
- 523          {
- 524   1        MVLT_ON;
- 525   1        APP_ON;
- 526   1        REL_OFF;
- 527   1      }
- 528          
- 529          void Ceya()
- 530          {
- 531   1        MVLT_ON;
- 532   1        APP_OFF;
- 533   1        REL_OFF;
- 534   1      }
- 535          //-----------------------------------------------------------------------------
- 536          // End Of File
- 537          //-----------------------------------------------------------------------------
- 538          
+ 507   1         // new_data variable will now tell which message object is new.
+ 508   1      
+ 509   1         CAN0IF1CM = 0x007F;                 // Read all of message object to IF1
+ 510   1                                             // Clear IntPnd and newData
+ 511   1      
+ 512   1         CAN0IF1CR = Interrupt_ID;           // Start command request
+ 513   1      
+ 514   1         while (CAN0IF1CRH & 0x80) {}           // Poll on Busy bit
+ 515   1      
+ 516   1         if (status & RxOk )                  // If transmit completed successfully
+ 517   1         {
+ 518   2             // Read all 8 data bytes to rxdata, even though they might not be valid
+ 519   2            CAN_Rx_Buf[0] = CAN0IF1DA1L;
+ 520   2            CAN_Rx_Buf[1] = CAN0IF1DA1H;
+ 521   2            CAN_Rx_Buf[2] = CAN0IF1DA2L;
+ 522   2            CAN_Rx_Buf[3] = CAN0IF1DA2H;
+ 523   2            CAN_Rx_Buf[4] = CAN0IF1DB1L;
+ 524   2            CAN_Rx_Buf[5] = CAN0IF1DB1H;
+ 525   2            CAN_Rx_Buf[6] = CAN0IF1DB2L;
+ 526   2            CAN_Rx_Buf[7] = CAN0IF1DB2H;
+ 527   2            CAN_RX_COMPLETE = 1;
+ 528   2      
+ 529   2        if(Interrupt_ID == Broadcast_ID && CAN_Rx_Buf[2] == IPM_ID)
+ 530   2        { 
+ 531   3          if( CAN_Rx_Buf[1] == 0x01 )
+ 532   3          {
+ 533   4          //  switch(CAN_Rx_Buf[0])
+ 534   4          //  {
+ 535   4          //    case 0x01: Yunzhuanwei(); break;
+ 536   4          //    case 0x02: Chuzhiwei(); break;
+ 537   4          //    case 0x04: Quanzhidongwei(); break;
+ 538   4          //    case 0x08: Yizhiwei(); break;
+ 539   4          //    case 0x10: Chonglianwei(); break;
+ 540   4          //    case 0x20: Jinjiwei(); break;
+ 541   4          //    default:break;
+ 542   4          //  }
+ 543   4      //      CAN_Tx_Buf[0] = CAN_Rx_Buf[0];
+ 544   4      //      CAN_Tx_Buf[1] = CAN_Rx_Buf[1];
+ 545   4      //      CAN_Tx_Buf[3] = CP20_ID;
+ 546   4      //      CAN_Tx_Buf[4] = FaultCode;
+ 547   4      //      Rx_Broadcast_OK = 1;
+ 548   4          }
+ 549   3          else if( CAN_Rx_Buf[1] == 0x02)
+ 550   3          {
+ 551   4            switch(CAN_Rx_Buf[0])
+C51 COMPILER V9.53.0.0   MAIN                                                              06/10/2017 01:00:40 PAGE 10  
+
+ 552   4            {
+ 553   5              case 0x01: Syunzhuanwei();break;
+ 554   5              case 0x02: Szhidongwei();break;
+ 555   5              case 0x04: Ceya();break;
+ 556   5              default:break;
+ 557   5            } 
+ 558   4            CAN_Tx_Buf[0] = CAN_Rx_Buf[0];
+ 559   4            CAN_Tx_Buf[1] = CAN_Rx_Buf[1];
+ 560   4            CAN_Tx_Buf[2] = CP20_ID;
+ 561   4            CAN_Tx_Buf[3] = FaultCode;
+ 562   4        
+ 563   4            CAN0_TransferMO(IPM_ID);
+ 564   4          }
+ 565   3      
+ 566   3          else if (CAN_Rx_Buf[1] == 0x11)
+ 567   3          {
+ 568   4            FaultCode = 0x11;
+ 569   4            CAN_Tx_Buf[0] = CAN_Rx_Buf[0];
+ 570   4            CAN_Tx_Buf[1] = CAN_Rx_Buf[1];
+ 571   4            CAN_Tx_Buf[2] = CP20_ID;
+ 572   4            CAN_Tx_Buf[3] = FaultCode;
+ 573   4          }
+ 574   3      
+ 575   3        }
+ 576   2         }
+ 577   1         // If an error occured, simply update the global variable and continue
+ 578   1         if (status & LEC)
+ 579   1         {
+ 580   2             // The LEC bits identify the type of error, but those are grouped here
+ 581   2             if ((status & LEC) != 0x07)
+ 582   2             {
+ 583   3                CAN_ERROR = 1;
+ 584   3             }
+ 585   2         }
+ 586   1      
+ 587   1         if (status & BOff)
+ 588   1         {
+ 589   2            CAN_ERROR = 1;
+ 590   2         }
+ 591   1      
+ 592   1         if (status & EWarn)
+ 593   1         {
+ 594   2            CAN_ERROR = 1;
+ 595   2         }
+ 596   1      
+ 597   1         // Old SFRPAGE is popped off stack when ISR exits
+ 598   1      }
+ 599          
+ 600          INTERRUPT (TIMER0_ISR, INTERRUPT_TIMER0)
+ 601          {
+ 602   1        TF0 = 0;
+ 603   1        TL0       = 0x90; 
+ 604   1        TH0       = 0xE8;     //3ms,based on 2MHz clock 
+ 605   1      
+ 606   1        PIDControl();
+ 607   1        
+ 608   1      }
+ 609          INTERRUPT (TIMER2_ISR, INTERRUPT_TIMER2)
+ 610          {
+ 611   1      
+ 612   1      //  DisplayNumber(2);
+ 613   1         TF2H = 0;                           // Reset Interrupt
+C51 COMPILER V9.53.0.0   MAIN                                                              06/10/2017 01:00:40 PAGE 11  
+
+ 614   1            // Set up the AMUX for the next ADC input
+ 615   1         if (AMUX_INPUT == (ANALOG_INPUTS - 1))
+ 616   1         {
+ 617   2            ADC0MX = PIN_TABLE[0] | 0x10;
+ 618   2         }
+ 619   1         else
+ 620   1         {
+ 621   2            ADC0MX = PIN_TABLE[AMUX_INPUT+1] | 0x10;
+ 622   2         }
+ 623   1         //SendMessageCAN0(EPCU_ERCP_MO,g_uTx_Data1);
+ 624   1         
+ 625   1      }
+ 626          
+ 627          
+ 628          INTERRUPT (TIMER3_ISR, INTERRUPT_TIMER3)
+ 629          {
+ 630   1        TMR3CN &= 0x7F;//clear flag
+ 631   1      
+ 632   1        PWM_APP *= 100;
+ 633   1        PWM_REL *= 100;
+ 634   1      
+ 635   1        PWM_Count++;
+ 636   1      
+ 637   1        if(PWM_Count > PWM_Period)
+ 638   1          PWM_Count = 0;
+ 639   1      
+ 640   1        if(PWM_Count < PWM_APP)
+ 641   1          APP_ON;
+ 642   1        else 
+ 643   1          APP_OFF;
+ 644   1      
+ 645   1        if(PWM_Count < PWM_REL)
+ 646   1          REL_ON;
+ 647   1        else
+ 648   1          REL_OFF;
+ 649   1      
+ 650   1      }
+ 651          
+ 652          
+ 653          INTERRUPT (ADC0_ISR, INTERRUPT_ADC0_EOC)
+ 654          {
+ 655   1         static U16 int_dec = INT_DEC;       // Integrate/decimate counter
+ 656   1                                             // A new result is posted when
+ 657   1                                             // int_dec is 0
+ 658   1        
+ 659   1         U8 i;                               // Loop counter
+ 660   1      
+ 661   1      
+ 662   1         AD0INT = 0;                         // Clear ADC conversion complete
+ 663   1                                             // overflow
+ 664   1      
+ 665   1      
+ 666   1         accumulator[AMUX_INPUT] += ADC0;    // Read the ADC value and add it to the
+ 667   1                                             // running total
+ 668   1      
+ 669   1         // Reset sample counter <int_dec> and <AMUX_INPUT> if the final input was
+ 670   1         // just read
+ 671   1         if(AMUX_INPUT == (ANALOG_INPUTS - 1))
+ 672   1         {
+ 673   2            int_dec--;                       // Update decimation counter
+ 674   2                                             // when the last of the analog inputs
+ 675   2                                             // is sampled
+C51 COMPILER V9.53.0.0   MAIN                                                              06/10/2017 01:00:40 PAGE 12  
+
+ 676   2      
+ 677   2            if (int_dec == 0)                // If zero, then post the averaged
+ 678   2            {                                // results
+ 679   3               int_dec = INT_DEC;            // Reset counter
+ 680   3      
+ 681   3               // Copy each averaged ADC0 value into the RESULT array
+ 682   3               for(i = 0; i < ANALOG_INPUTS; i++)
+ 683   3               {
+ 684   4                  // Copy averaged values into RESULT
+ 685   4                  RESULT[i] = accumulator[i] / int_dec;
+ 686   4      
+ 687   4                  // Reset accumulators
+ 688   4                  accumulator[i] = 0x00000000;
+ 689   4               }
+ 690   3            }
+ 691   2      
+ 692   2            AMUX_INPUT = 0;                  // Reset input index back to P0.1
+ 693   2         }
+ 694   1         // Otherwise, increment the AMUX channel counter
+ 695   1         else
+ 696   1         {
+ 697   2            AMUX_INPUT++;                    // Step to the next analog mux input
+ 698   2         }
+ 699   1         //smg_display(0xe,0xa,0xc,18);
+ 700   1      }
+ 701          
+ 702          
+ 703          
+ 704          void Yunzhuanwei()
+ 705          {
+ 706   1      
+ 707   1      }
+ 708          void Chuzhiwei()
+ 709          {
+ 710   1      
+ 711   1      }
+ 712          
+ 713          void Quanzhidongwei()
+ 714          {
+ 715   1      
+ 716   1      }
+ 717          
+ 718          void Yizhiwei()
+ 719          {
+ 720   1      
+ 721   1      }
+ 722          
+ 723          void Chonglianwei()
+ 724          {
+ 725   1      
+ 726   1      }
+ 727          
+ 728          void Jinjiwei()
+ 729          {
+ 730   1        
+ 731   1      
+ 732   1      }
+ 733          
+ 734          void Syunzhuanwei()
+ 735          {
+ 736   1        MVLT_ON;
+ 737   1        APP_OFF;
+C51 COMPILER V9.53.0.0   MAIN                                                              06/10/2017 01:00:40 PAGE 13  
+
+ 738   1        REL_ON;
+ 739   1      }
+ 740          
+ 741          void Szhidongwei()
+ 742          {
+ 743   1        MVLT_ON;
+ 744   1        APP_ON;
+ 745   1        REL_OFF;
+ 746   1        Target_20TL_Pressure = 300;
+ 747   1      }
+ 748          
+ 749          void Ceya()
+ 750          {
+ 751   1        MVLT_ON;
+ 752   1        APP_OFF;
+ 753   1        REL_OFF;
+ 754   1      }
+ 755          //-----------------------------------------------------------------------------
+ 756          // End Of File
+ 757          //-----------------------------------------------------------------------------
+ 758          
+*** WARNING C294 IN LINE 162 OF main.c: unreachable code
 
 
 MODULE INFORMATION:   STATIC OVERLAYABLE
-   CODE SIZE        =    761    ----
+   CODE SIZE        =   2424    ----
    CONSTANT SIZE    =   ----    ----
-   XDATA SIZE       =     24       5
+   XDATA SIZE       =    118      14
    PDATA SIZE       =   ----    ----
    DATA SIZE        =   ----    ----
    IDATA SIZE       =   ----    ----
@@ -574,4 +803,4 @@ MODULE INFORMATION:   STATIC OVERLAYABLE
 END OF MODULE INFORMATION.
 
 
-C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)
+C51 COMPILATION COMPLETE.  1 WARNING(S),  0 ERROR(S)

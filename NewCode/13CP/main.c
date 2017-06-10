@@ -23,7 +23,7 @@ void OSCILLATOR_Init (void);
 void PORT_Init (void);
 void CAN0_Init (void);
 void ADC0_Init(void);
-void Timer2_Init(void);
+void Timer_Init(void);
  
 void CAN0_TransferMO (U8 obj_num);
 void Yunzhuanwei(void);
@@ -37,7 +37,10 @@ void Szhidongwei();
 void Ceya();
 
 INTERRUPT_PROTO (CAN0_ISR, INTERRUPT_CAN0);
+INTERRUPT_PROTO (TIMER0_ISR, INTERRUPT_TIMER0);
 INTERRUPT_PROTO (TIMER2_ISR, INTERRUPT_TIMER2);
+INTERRUPT_PROTO (TIMER3_ISR, INTERRUPT_TIMER3);
+INTERRUPT_PROTO (ADC0_ISR, INTERRUPT_ADC0_EOC);
 
 //-----------------------------------------------------------------------------
 // Global Constants
@@ -102,7 +105,10 @@ U8 Rx_CP16_OK = 0;
 
 U8 PIN_TABLE[ANALOG_INPUTS] = {0x00, 0x01, 0x02, 0x03};
 U8 AMUX_INPUT = 0;
-
+U8 PWM_Count = 0;
+U8 PWM_Period = 100;
+U8 PWM_APP = 0;
+U8 PWM_REL = 0;
 //-----------------------------------------------------------------------------
 // MAIN Routine
 //-----------------------------------------------------------------------------
@@ -117,7 +123,7 @@ void main (void)
    PORT_Init ();                       // Initialize crossbar and GPIO
    CAN0_Init ();                       // Start CAN peripheral
    ADC0_Init ();
-   Timer2_Init ();
+   Timer_Init ();
 
    EIE2 |= 0x02;                       // Enable CAN interupts
    EA = 1;                             // Enable global interrupts
@@ -130,6 +136,7 @@ void main (void)
 			CAN0_TransferMO(IPM_ID);
 			Rx_CP16_OK = 0;
 		}
+		8
    }
 }
 
@@ -155,12 +162,14 @@ void PORT_Init (void)
 {
    U8 SFRPAGE_save = SFRPAGE;
    SFRPAGE  = CONFIG_PAGE;             // Port SFR's on Configuration page
-
+	
+	 P0SKIP |= 0x01;                     // Skip P0.0 (VREF)
+	 P0MDIN &= ~0x01;                   // Set VREF to analog
    P0MDOUT  |= 0x40;                   // P0.6 (CAN0 TX) is push-pull
    P1MDOUT  |= 0x08;                   // P1.3 (LED) is push-pull
    P1MDOUT &= 0xbf;          					//P1^6 open drain for relay
-  // P2MDIN |= 0xf0;           					 //ADC
-  // P2SKIP |= 0x0f;           					 //ADC
+	 P2SKIP |= 0x0f;                     // Skip P2.0,P2.1,P2.2,P2.3(ADC input)
+	 P2MDIN &= ~0x0f;                   // Set P2.0,P2.1,P2.2,P2.3 as an analog input
    P2MDOUT |= 0xc0;                    //P2.6/7 for driving mosfet
    P3MDOUT |= 0xff;                            //P3 is push-pull to drive the LED.
    P4MDOUT |= 0x03;                            //P4   
@@ -177,50 +186,75 @@ void PORT_Init (void)
 void ADC0_Init(void)
 {
 	U8 SFRPAGE_save = SFRPAGE;
-	SFRPAGE = ACTIVE_PAGE;
+   SFRPAGE = ACTIVE_PAGE;
 
-	ADC0CF |= 0x01;
-	ADC0H = 0x04;
-	ADC0L = 0x6c;
-	ADC0H = 0x07;
-	ADC0L = 0xa0;
-	ADC0H = 0x08;
-	ADC0L = 0x01;
-	ADC0CF &= ~0x01;
+   ADC0CF |= 0x01;                     // Set GAINEN = 1
+   ADC0H   = 0x04;                     // Load the ADC0GNH address
+   ADC0L   = 0x6C;                     // Load the upper byte of 0x6CA to 
+                                       // ADC0GNH
+   ADC0H   = 0x07;                     // Load the ADC0GNL address
+   ADC0L   = 0xA0;                     // Load the lower nibble of 0x6CA to 
+                                       // ADC0GNL
+   ADC0H   = 0x08;                     // Load the ADC0GNA address
+   ADC0L   = 0x01;                     // Set the GAINADD bit
+   ADC0CF &= ~0x01;                    // Set GAINEN = 0
 
-	ADC0CN = 0x10;           //0 start by writing 1 to AD0BUSY, 1 start by overflow of timer 1 , 3 by timer 2
+   ADC0CN = 0x03;                      // ADC0 disabled, normal tracking,
+                                       // conversion triggered on TMR2 overflow
+                                       // Output is right-justified
 
-	REF0CN = 0x33;
+   REF0CN = 0x33;                      // Enable on-chip VREF and buffer
+                                       // Set voltage reference to 2.25V
 
-	ADC0MX = 0x10| PIN_TABLE[AMUX_INPUT];
+   ADC0MX = 0x0A;                      // Set ADC input to P1.2
 
-	ADC0CF = ((SYSCLK /3000000) - 1) << 3;
+   ADC0CF = ((SYSCLK / 3000000) - 1) << 3;   // Set SAR clock to 3MHz
 
-//	EIE1 |= 0x04;
+   EIE1 |= 0x04;                       // Enable ADC0 conversion complete int.
 
-	AD0EN = 1;
+   AD0EN = 1;                          // Enable ADC0
 
-	SFRPAGE = SFRPAGE_save;
+   SFRPAGE = SFRPAGE_save;
 
 }
 
 
 //-----------------------------------------------------------------------------
-// Timer2_Init
+// Timer_Init
 //-----------------------------------------------------------------------------
-void Timer2_Init(void)
+void Timer_Init(void)
 {
    U8 SFRPAGE_save = SFRPAGE;
    SFRPAGE = ACTIVE_PAGE;
+ 
+    CKCON = 0x00;			//t1 t0 use the sys-clock/12,t3 t2 refer to TMRXCN
+    
+   TCON      = 0x00;			//t1 don't run temporarily,t0 don't run 
+   TMOD      = 0x21;			//t1 8bit reload timer,t0 16bit timer
+   TL0       = 0x90;	
+   TH0       = 0xE8;			//3ms,based on 2MHz clock        		℅“車?車迆??DD?D?車那??邦芍?3ms?“那㊣
+   TR0 = 1;
+   ET0 = 1;
 
-   CKCON &= ~0x30;                     // Timer2 uses SYSCLK/12
-   TMR2CN &= ~0x01;
+   TMR2CN = 0x00;                      // Stop Timer2; Clear TF2;
+                                       // use SYSCLK as timebase, 16-bit
+                                       // auto-reload
+   CKCON |= 0x10;                      // Select SYSCLK for timer 2 source
+   TMR2RL = 65535 - (SYSCLK / 10000);  // Init reload value for 10 us
+   TMR2 = 0xFFFF;                      // Set to reload immediately
+   ET2 = 1;                            // Enable Timer2 interrupts
+   TR2 = 1;                            // Start Timer2
 
-   TMR2RL = TIMER2_RELOAD;             // Reload value to be used in Timer2
-   TMR2 = TMR2RL;                      // Init the Timer2 register
+   PT2 = 1;
 
-   TMR2CN = 0x04;                      // Enable Timer2 in auto-reload mode
-   ET2 = 1;                            // Timer2 interrupt enabled
+		TMR3CN    = 0x00;			//t3 16bit reload timer,don't run,sys-clock/12
+    //TMR3RL = 20000;
+    //TMR3 = 0xffff;
+	  TMR3RLL   = 0x30;
+    TMR3RLH   = 0xf8;
+    TMR3L     = 0x30;
+    TMR3H     = 0xf8;			//    車?車迆S㏒?ms?“那㊣ */
+	  TMR3CN |= 0x04;				//run timer3
 
    SFRPAGE = SFRPAGE_save;
 }
@@ -409,7 +443,7 @@ INTERRUPT (CAN0_ISR, INTERRUPT_CAN0)
       CAN_Rx_Buf[7] = CAN0IF1DB2H;
       CAN_RX_COMPLETE = 1;
 
-	if(Interrupt_ID == CP13_ID && CAN_Rx_Buf[2] == CP16_ID && CAN_Rx_Buf[3] == 0x00)
+	if(Interrupt_ID == CP13_ID && CAN_Rx_Buf[2] == CP16_ID )
 		Rx_CP16_OK = 1;
 	if(Interrupt_ID == Broadcast_ID && CAN_Rx_Buf[2] == IPM_ID)         //Check Information
 	{	
@@ -451,7 +485,7 @@ INTERRUPT (CAN0_ISR, INTERRUPT_CAN0)
 			CAN_Tx_Buf[0] = CAN_Rx_Buf[0];
 			CAN_Tx_Buf[1] = CAN_Rx_Buf[1];
 			CAN_Tx_Buf[2] = CP13_ID;
-			CAN_Tx_Buf[3] = FaultCode;
+			CAN_Tx_Buf[3] = 0x11;
 
 			CAN0_TransferMO(IPM_ID);
 		}
@@ -480,15 +514,58 @@ INTERRUPT (CAN0_ISR, INTERRUPT_CAN0)
    // Old SFRPAGE is popped off stack when ISR exits
 }
 
+
+INTERRUPT (TIMER0_ISR, INTERRUPT_TIMER0)
+{
+	TF0 = 0;
+	TL0       = 0x90;	
+  TH0       = 0xE8;			//3ms,based on 2MHz clock 
+
+//	PIDControl();
+	
+}
 INTERRUPT (TIMER2_ISR, INTERRUPT_TIMER2)
 {
 
 //	DisplayNumber(2);
    TF2H = 0;                           // Reset Interrupt
+      // Set up the AMUX for the next ADC input
+   if (AMUX_INPUT == (ANALOG_INPUTS - 1))
+   {
+      ADC0MX = PIN_TABLE[0] | 0x10;
+   }
+   else
+   {
+      ADC0MX = PIN_TABLE[AMUX_INPUT+1] | 0x10;
+   }
+   //SendMessageCAN0(EPCU_ERCP_MO,g_uTx_Data1);
    
 }
 
 
+INTERRUPT (TIMER3_ISR, INTERRUPT_TIMER3)
+{/*
+	TMR3CN &= 0x7F;//clear flag
+
+	PWM_APP *= 100;
+	PWM_REL *= 100;
+
+	PWM_Count++;
+
+	if(PWM_Count > PWM_Period)
+		PWM_Count = 0;
+
+	if(PWM_Count < PWM_APP)
+		APP_ON;
+	else 
+		APP_OFF;
+
+	if(PWM_Count < PWM_REL)
+		REL_ON;
+	else
+		REL_OFF;
+		*/
+}
 
 void Yunzhuanwei()
 {

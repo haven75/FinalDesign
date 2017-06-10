@@ -104,7 +104,7 @@ U8 PWM_Period = 100;
 U8 PWM_APP = 0;
 U8 PWM_REL = 0;
 
-U32 Target_ERT_Pressure  ;
+U32 Target_ERT_Pressure = 500  ;
 
 U32 pressure_current_ERT;
 U16 pressureERT_H;
@@ -118,6 +118,7 @@ U16 pressureMRT_L;
 float P_mA_current_MRT=0 ;
 
 float error, sumerror, lasterror, kp, ki, kd;
+U32 TxCount;
 //-----------------------------------------------------------------------------
 // MAIN Routine
 //-----------------------------------------------------------------------------
@@ -144,6 +145,23 @@ void main (void)
    {
    	 smg_display(0xe,0xa,0xc,18);
 		 PressureCal();
+		 	TxCount++;
+		 if( CAN_Rx_Buf[1] == 0x01)
+		 {
+			 	CAN_Tx_Buf[0] = CAN_Rx_Buf[0];
+				CAN_Tx_Buf[1] = CAN_Rx_Buf[1];
+				CAN_Tx_Buf[2] = ERCP_ID;
+				CAN_Tx_Buf[3] = FaultCode;
+				CAN_Tx_Buf[4] = 0x01;
+				CAN_Tx_Buf[5] = 0xf4;
+				CAN_Tx_Buf[6] = 0x02;
+				CAN_Tx_Buf[7] = 0xbc;
+			}
+		if(TxCount > 1000 )
+		{	
+			CAN0_TransferMO(IPM_ID);
+			TxCount = 0;
+		}
    }
 }
 
@@ -611,7 +629,20 @@ INTERRUPT (TIMER3_ISR, INTERRUPT_TIMER3)
 		REL_ON;
 	else
 		REL_OFF;
-
+//	TxCount++;
+//	if(TxCount>10000 && CAN_Rx_Buf[1] == 0x01)
+//	{
+//		TxCount=0;
+//		CAN_Tx_Buf[0] = CAN_Rx_Buf[0];
+//		CAN_Tx_Buf[1] = CAN_Rx_Buf[1];
+//		CAN_Tx_Buf[2] = ERCP_ID;
+//		CAN_Tx_Buf[3] = FaultCode;
+//		CAN_Tx_Buf[4] = 1;
+//		CAN_Tx_Buf[5] = 0xf4;
+//		CAN_Tx_Buf[6] = 2;
+//		CAN_Tx_Buf[7] = 0xbc;
+//		CAN0_TransferMO(IPM_ID);
+//	}
 }
 
 
@@ -673,23 +704,24 @@ void Yunzhuanwei()
 	RelayON;
 	APP_ON;
 	REL_OFF;
+	Target_ERT_Pressure = 500;
 }
 void Chuzhiwei()
 {
-	Target_ERT_Pressure = 50;
+	Target_ERT_Pressure -= 50;
 	RelayON;
 }
 
 void Quanzhidongwei()
 {
 	RelayON;
-	Target_ERT_Pressure = 170;
+	Target_ERT_Pressure -= 170;
 }
 
 void Yizhiwei()
 {
 	RelayON;
-	Target_ERT_Pressure = 170;
+	Target_ERT_Pressure -= 170;
 }
 
 void Chonglianwei()
